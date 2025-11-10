@@ -30,24 +30,22 @@ class MapService:
         }
 
     def create_standard_map(self) -> BoardState:
-        """创建标准游戏地图"""
+        """创建标准游戏地图 - 修复版本"""
+        from ..core.models.board import BoardState, BuildingType
+
         board = BoardState()
-        board.initialize_nodes()
+        board.initialize_nodes()  # 使用统一初始化方法
 
-        # 创建基础路径
-        layout = self.standard_map_layout
+        # 设置建筑（与链接14保持一致）
+        building_placement = {
+            1: BuildingType.STATION,
+            3: BuildingType.RANCH,
+            5: BuildingType.HAZARD,
+            7: BuildingType.TELEGRAPH,
+            10: BuildingType.CHURCH
+        }
 
-        # 连接线性路径
-        for i in range(29):
-            board.connect_nodes(i, i + 1)
-
-        # 添加分支
-        for branch_node, targets in layout["branch_points"].items():
-            for target in targets:
-                board.connect_nodes(branch_node, target)
-
-        # 放置建筑物
-        for node_id, building_type in layout["building_placement"].items():
+        for node_id, building_type in building_placement.items():
             board.place_building(node_id, building_type)
 
         return board

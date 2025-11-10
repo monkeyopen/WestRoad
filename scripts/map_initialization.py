@@ -11,7 +11,7 @@ from src.core.models.enums import GamePhase
 from src.core.models.board import LocationType
 
 
-def test_map_initialization():
+def map_initialization():
     """测试地图初始化功能"""
     print("=== 测试地图初始化 ===")
 
@@ -37,7 +37,7 @@ def test_map_initialization():
     # 详细检查分支点及其所有后继节点
     branch_nodes = [5, 10, 15, 20]
     print("\n=== 分支点详细信息 ===")
-    for node_id in branch_nodes:
+    for node_id in game_state.board_state.nodes:
         node = game_state.board_state.nodes[node_id]
         print(f"\n分支点{node_id}:")
         print(f"  类型: {node.location_type.value}")
@@ -63,7 +63,7 @@ def test_map_initialization():
 
     # 打印所有节点的连接关系
     print("\n=== 完整节点连接关系 ===")
-    for node_id in range(30):
+    for node_id in range(110):
         node = game_state.board_state.nodes[node_id]
         if node.next_nodes:  # 只打印有后继节点的节点
             print(f"节点{node_id} -> {node.next_nodes}")
@@ -91,4 +91,4 @@ def test_map_initialization():
 
 
 if __name__ == "__main__":
-    test_map_initialization()
+    map_initialization()

@@ -4,11 +4,12 @@ from datetime import datetime
 import json
 from uuid import uuid4
 import random
+from .models.board import LocationType, BuildingType
 
 # 使用相对导入
 from .models.enums import GamePhase, PlayerColor
 from .models.player import PlayerState, ResourceSet, CattleCard
-from .models.board import BoardState, BuildingType
+from .models.board import BoardState, MapNode, BuildingType
 
 
 @dataclass
@@ -119,88 +120,70 @@ class GameState:
         }
 
     def _board_to_dict(self) -> Dict[str, Any]:
-        """版图状态转换为字典"""
-        return {
-            "locations": {k: self._location_to_dict(v) for k, v in self.board_state.locations.items()},
-            "neutral_buildings": self.board_state.neutral_buildings,
-            "player_buildings": self.board_state.player_buildings,
-            "available_locations": self.board_state.available_locations,
-            "kansas_city_state": self.board_state.kansas_city_state
-        }
+        """版图状态转换为字典 - 修复版本"""
+        if hasattr(self.board_state, 'nodes'):
+            # 使用nodes结构的序列化
+            return {
+                "nodes": {k: self._node_to_dict(v) for k, v in self.board_state.nodes.items()},
+                "neutral_buildings": getattr(self.board_state, 'neutral_buildings', []),
+                "player_buildings": getattr(self.board_state, 'player_buildings', {}),
+                "available_locations": getattr(self.board_state, 'available_locations', []),
+                "kansas_city_state": getattr(self.board_state, 'kansas_city_state', {})
+            }
+        else:
+            # 回退到原逻辑
+            return {
+                "locations": {},
+                "neutral_buildings": [],
+                "player_buildings": {},
+                "available_locations": [],
+                "kansas_city_state": {}
+            }
 
-    def _location_to_dict(self, location) -> Dict[str, Any]:
-        """地点转换为字典"""
+    def _node_to_dict(self, node: MapNode) -> Dict[str, Any]:
+        """将地图节点转换为字典"""
         return {
-            "location_id": location.location_id,
-            "location_type": location.location_type,
-            "name": location.name,
-            "owner_id": location.owner_id,
-            "available_actions": location.available_actions
+            "node_id": node.node_id,
+            "name": node.name,
+            "location_type": node.location_type.value,
+            "building_type": node.building_type.value if node.building_type else None,
+            "next_nodes": node.next_nodes,
+            "previous_nodes": node.previous_nodes,
+            "x": node.x,
+            "y": node.y,
+            "actions": node.actions,
+            # 移除 owner_id 属性，因为 MapNode 没有这个属性
+            # "owner_id": node.owner_id,
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'GameState':
-        """从字典创建GameState实例"""
-        # 创建基础实例
-        game_state = cls(
-            session_id=data["session_id"],
-            game_version=data.get("game_version", "1.0"),
-            current_phase=GamePhase(data["current_phase"]),
-            current_round=data["current_round"],
-            current_player_index=data["current_player_index"],
-            player_order=data["player_order"],
-            max_players=data.get("max_players", 4),
-            game_config=data.get("game_config", {}),
-            version=data["version"]
-        )
+        """从字典创建GameState实例 - 修复版本"""
+        game_state = cls(session_id=data["session_id"])
 
-        # 处理时间字段
-        if data.get("turn_start_time"):
-            game_state.turn_start_time = datetime.fromisoformat(data["turn_start_time"])
-        if data.get("last_updated"):
-            game_state.last_updated = datetime.fromisoformat(data["last_updated"])
+        # ... 其他初始化代码 ...
 
-        # 重建玩家状态
-        game_state.players = []
-        for player_data in data["players"]:
-            resources_data = player_data["resources"]
-            player = PlayerState(
-                player_id=player_data["player_id"],
-                user_id=player_data["user_id"],
-                player_color=PlayerColor(player_data["player_color"]),
-                display_name=player_data["display_name"],
-                position=player_data["position"],
-                previous_position=player_data.get("previous_position"),
-                resources=ResourceSet(
-                    money=resources_data["money"],
-                    workers=resources_data["workers"],
-                    craftsmen=resources_data["craftsmen"],
-                    engineers=resources_data["engineers"],
-                    certificates=resources_data["certificates"]
-                ),
-                hand_cards=player_data["hand_cards"],
-                victory_points=player_data["victory_points"],
-                stations_built=player_data["stations_built"],
-                cattle_sold_count=player_data["cattle_sold_count"],
-                buildings_built_count=player_data["buildings_built_count"],
-                workers_hired_count=player_data["workers_hired_count"]
-            )
-            game_state.players.append(player)
+        # 修复版图状态重建
+        board_data = data.get("board_state", {})
+        if "nodes" in board_data:
 
-        # 重建版图状态
-        board_data = data["board_state"]
-        game_state.board_state = BoardState(
-            locations={int(k): Location(**v) for k, v in board_data["locations"].items()},
-            neutral_buildings=board_data["neutral_buildings"],
-            player_buildings=board_data["player_buildings"],
-            available_locations=board_data["available_locations"],
-            kansas_city_state=board_data["kansas_city_state"]
-        )
+            game_state.board_state = BoardState()
+            game_state.board_state.nodes = {}
 
-        # 其他数据
-        game_state.cattle_market = data["cattle_market"]
-        game_state.available_workers = data["available_workers"]
-        game_state.action_history = data.get("action_history", [])
+            for node_id_str, node_data in board_data["nodes"].items():
+                node_id = int(node_id_str)
+                game_state.board_state.nodes[node_id] = MapNode(
+                    node_id=node_id,
+                    building_type=BuildingType(node_data["building_type"]),
+                    next_nodes=node_data["next_nodes"],
+                    owner_id=node_data.get("owner_id")
+                )
+
+            # 设置其他属性
+            game_state.board_state.neutral_buildings = board_data.get("neutral_buildings", [])
+            game_state.board_state.player_buildings = board_data.get("player_buildings", {})
+            game_state.board_state.available_locations = board_data.get("available_locations", [])
+            game_state.board_state.kansas_city_state = board_data.get("kansas_city_state", {})
 
         return game_state
 
@@ -244,7 +227,7 @@ class GameState:
 
     # 在GameState类中添加地图初始化方法
     def initialize_map(self):
-        """初始化游戏地图 - 创建30个节点的有向图结构"""
+        """初始化游戏地图 - 创建50个节点的有向图结构"""
         # 确保board_state已初始化
         if not hasattr(self.board_state, 'nodes') or not self.board_state.nodes:
             self.board_state.initialize_nodes()
@@ -253,22 +236,92 @@ class GameState:
         for i in range(29):
             self.board_state.connect_nodes(i, i + 1)
 
-        # 添加分支路径（部分节点有多个后继）
-        # 示例：节点5分支到节点6和节点7
-        self.board_state.connect_nodes(5, 7)  # 5->7的捷径
-        # 节点10分支到节点11和节点12
-        self.board_state.connect_nodes(10, 12)  # 10->12的捷径
-        # 节点15分支到节点16和节点18
-        self.board_state.connect_nodes(15, 18)  # 15->18的捷径
+        # 水灾支路
+        self.board_state.connect_nodes(1, 51)
+        self.board_state.connect_nodes(51, 52)
+        self.board_state.connect_nodes(52, 53)
+        self.board_state.connect_nodes(53, 54)
+        self.board_state.connect_nodes(54, 55)
+        self.board_state.connect_nodes(55, 56)
+        self.board_state.connect_nodes(56, 5)
 
-        # 随机放置建筑物（后续可以根据规则调整）
-        self._place_random_buildings()
+        # 旱灾支路
+        self.board_state.connect_nodes(5, 61)
+        self.board_state.connect_nodes(61, 62)
+        self.board_state.connect_nodes(62, 63)
+        self.board_state.connect_nodes(63, 64)
+        self.board_state.connect_nodes(64, 65)
+        self.board_state.connect_nodes(65, 9)
 
-    def _place_random_buildings(self):
-        """随机放置建筑物（临时实现，后续按规则调整）"""
-        building_types = list(BuildingType)
-        for node_id in range(30):
-            # 跳过起点和终点不放置建筑，或者特殊处理
-            if node_id not in [0, 29]:  # 起点和终点不放置普通建筑
-                building_type = random.choice(building_types[:5])  # 暂时只用前5种
-                self.board_state.place_building(node_id, building_type)
+        # 分支1
+        self.board_state.connect_nodes(9, 71)
+        self.board_state.connect_nodes(71, 72)
+        self.board_state.connect_nodes(72, 12)
+
+        # 落石支路
+        self.board_state.connect_nodes(12, 81)
+        self.board_state.connect_nodes(81, 82)
+        self.board_state.connect_nodes(82, 83)
+        self.board_state.connect_nodes(83, 84)
+        self.board_state.connect_nodes(84, 85)
+        self.board_state.connect_nodes(85, 86)
+        self.board_state.connect_nodes(86, 15)
+
+        # 分支2
+        self.board_state.connect_nodes(15, 91)
+        self.board_state.connect_nodes(91, 17)
+
+        # 分支3
+        self.board_state.connect_nodes(17, 92)
+        self.board_state.connect_nodes(92, 19)
+
+        # 帐篷支路
+        self.board_state.connect_nodes(10, 101)
+        self.board_state.connect_nodes(101, 102)
+        self.board_state.connect_nodes(102, 103)
+        self.board_state.connect_nodes(103, 104)
+        self.board_state.connect_nodes(104, 105)
+        self.board_state.connect_nodes(105, 106)
+        self.board_state.connect_nodes(106, 107)
+        self.board_state.connect_nodes(107, 108)
+        self.board_state.connect_nodes(108, 12)
+
+
+
+        # 设置特殊地点的动作
+        self.board_state.nodes[0].location_type = LocationType.START
+        self.board_state.nodes[0].name = "起点"
+        self.board_state.nodes[0].actions = ["move", "start_turn"]
+
+        self.board_state.nodes[29].location_type = LocationType.KANSAS_CITY
+        self.board_state.nodes[29].name = "堪萨斯城"
+        self.board_state.nodes[29].actions = ["cattle_sale", "end_turn"]
+
+        # 设置分支点为特殊类型
+        for branch_id in [5, 10, 15, 20]:
+            self.board_state.nodes[branch_id].location_type = LocationType.BRANCH
+            self.board_state.nodes[branch_id].name = f"分支点{branch_id}"
+            self.board_state.nodes[branch_id].add_action("choose_path")
+
+        # 放置建筑物
+        self._place_buildings()
+
+    def _place_buildings(self):
+        """放置建筑物"""
+        # 使用预定义的建筑放置点
+        building_placement = {
+            1: BuildingType.STATION,
+            3: BuildingType.RANCH,
+            6: BuildingType.HAZARD,
+            8: BuildingType.TELEGRAPH,
+            11: BuildingType.CHURCH,
+            13: BuildingType.STATION,
+            16: BuildingType.RANCH,
+            18: BuildingType.HAZARD,
+            21: BuildingType.TELEGRAPH,
+            24: BuildingType.CHURCH,
+            26: BuildingType.STATION
+        }
+
+        for node_id, building_type in building_placement.items():
+            self.board_state.place_building(node_id, building_type)
