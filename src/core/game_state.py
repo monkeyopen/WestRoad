@@ -3,11 +3,12 @@ from typing import List, Dict, Optional, Any
 from datetime import datetime
 import json
 from uuid import uuid4
+import random
 
 # 使用相对导入
 from .models.enums import GamePhase, PlayerColor
 from .models.player import PlayerState, ResourceSet, CattleCard
-from .models.board import BoardState, Location
+from .models.board import BoardState, BuildingType
 
 
 @dataclass
@@ -240,3 +241,34 @@ class GameState:
         state.board_state = BoardState.from_dict(data["board_state"])
         state.cattle_market = data["cattle_market"]
         return state
+
+    # 在GameState类中添加地图初始化方法
+    def initialize_map(self):
+        """初始化游戏地图 - 创建30个节点的有向图结构"""
+        # 确保board_state已初始化
+        if not hasattr(self.board_state, 'nodes') or not self.board_state.nodes:
+            self.board_state.initialize_nodes()
+
+        # 创建基础线性路径 (0->1->2->...->29)
+        for i in range(29):
+            self.board_state.connect_nodes(i, i + 1)
+
+        # 添加分支路径（部分节点有多个后继）
+        # 示例：节点5分支到节点6和节点7
+        self.board_state.connect_nodes(5, 7)  # 5->7的捷径
+        # 节点10分支到节点11和节点12
+        self.board_state.connect_nodes(10, 12)  # 10->12的捷径
+        # 节点15分支到节点16和节点18
+        self.board_state.connect_nodes(15, 18)  # 15->18的捷径
+
+        # 随机放置建筑物（后续可以根据规则调整）
+        self._place_random_buildings()
+
+    def _place_random_buildings(self):
+        """随机放置建筑物（临时实现，后续按规则调整）"""
+        building_types = list(BuildingType)
+        for node_id in range(30):
+            # 跳过起点和终点不放置建筑，或者特殊处理
+            if node_id not in [0, 29]:  # 起点和终点不放置普通建筑
+                building_type = random.choice(building_types[:5])  # 暂时只用前5种
+                self.board_state.place_building(node_id, building_type)

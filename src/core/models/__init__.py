@@ -4,11 +4,11 @@
 
 from .enums import GamePhase, PlayerColor, ActionType
 from .player import PlayerState, ResourceSet
-from .board import Location, BoardState
+from .board import BoardState, BuildingType, MapNode
 
 # 导出所有公共类
 __all__ = [
     'GamePhase', 'PlayerColor', 'ActionType',
     'PlayerState', 'ResourceSet',
-    'Location', 'BoardState'
+    'MapNode', 'BoardState', 'BuildingType'
 ]

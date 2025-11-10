@@ -113,6 +113,7 @@ class GameSessionService:
         available_colors = [color for color in PlayerColor if color not in used_colors]
         return available_colors
 
+    # 在GameSessionService的start_session方法中添加地图初始化
     def start_session(self, session_id: str, user_id: str) -> Dict[str, Any]:
         """开始游戏会话"""
         session = self.repository.get_by_id(session_id)
@@ -130,7 +131,10 @@ class GameSessionService:
         if len(game_state.players) < 2:
             return {"success": False, "message": "至少需要2名玩家才能开始游戏"}
 
-        # 更新游戏状态 - 设置游戏阶段为玩家回合，而不是直接设置game_started
+        # 初始化游戏地图
+        game_state.initialize_map()  # 新增：初始化地图
+
+        # 更新游戏状态
         game_state.current_phase = GamePhase.PLAYER_TURN
 
         # 更新数据库
@@ -143,6 +147,7 @@ class GameSessionService:
             "session_id": session_id,
             "status": "playing",
             "current_phase": game_state.current_phase.value,
+            "map_initialized": True,  # 新增：地图已初始化标志
             "current_player": game_state.current_player.to_dict() if game_state.current_player else None
         }
 
