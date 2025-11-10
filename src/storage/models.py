@@ -38,3 +38,5 @@ class Player(Base):
     games_won = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_played = Column(DateTime)
+
+

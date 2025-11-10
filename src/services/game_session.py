@@ -8,6 +8,8 @@ from ..core.models.enums import GamePhase, PlayerColor
 from ..core.models.player import PlayerState, ResourceSet
 from ..storage.models import GameSession as GameSessionModel
 from ..storage.repositories import GameSessionRepository
+from ..core.models.enums import ActionType
+from ..core.game_flow import GameFlowController
 
 
 class GameSessionService:
@@ -36,20 +38,20 @@ class GameSessionService:
         game_state.players.append(player)
         game_state.player_order.append(0)
 
-        # 保存到数据库
-        session_model = GameSessionModel(
-            id=game_state.session_id,
-            session_name=session_name,
-            max_players=max_players,
-            current_players=1,
-            game_state=game_state.to_json(),
-            session_status="waiting",
-            created_by=creator_id,
-            host_player_id=creator_id,
-            created_at=datetime.utcnow()
-        )
+        # 保存到数据库 - 传递字典而不是对象
+        session_data = {
+            "id": game_state.session_id,
+            "session_name": session_name,
+            "max_players": max_players,
+            "current_players": 1,
+            "game_state": game_state.to_json(),
+            "session_status": "waiting",
+            "created_by": creator_id,
+            "host_player_id": creator_id,
+            "created_at": datetime.utcnow()
+        }
 
-        self.repository.create(session_model)
+        session_model = self.repository.create(session_data)
 
         return {
             "session_id": game_state.session_id,
@@ -60,74 +62,76 @@ class GameSessionService:
         }
 
     def join_session(self, session_id: str, user_id: str, display_name: str) -> Dict[str, Any]:
-        """加入游戏会话"""
+        """玩家加入游戏会话"""
+        from ..core.models.enums import PlayerColor  # 导入枚举
+
         session = self.repository.get_by_id(session_id)
         if not session:
-            raise ValueError("游戏会话不存在")
+            return {"success": False, "message": "游戏会话不存在"}
 
-        # 加载游戏状态
+        # 反序列化游戏状态
         game_state = GameState.from_json(session.game_state)
 
-        # 检查是否已满
-        if len(game_state.players) >= game_state.max_players:
-            raise ValueError("游戏会话已满")
+        # 检查会话是否已满
+        if len(game_state.players) >= session.max_players:
+            return {"success": False, "message": "游戏会话已满"}
 
-        # 检查是否已加入
-        for player in game_state.players:
-            if player.user_id == user_id:
-                raise ValueError("玩家已加入该会话")
-
-        # 添加新玩家
-        player_colors = [PlayerColor.RED, PlayerColor.BLUE, PlayerColor.GREEN, PlayerColor.YELLOW]
-        used_colors = [p.player_color for p in game_state.players]
-        available_colors = [color for color in player_colors if color not in used_colors]
-
+        # 获取下一个可用颜色
+        from uuid import uuid4
+        available_colors = self._get_available_colors(game_state.players)
         if not available_colors:
-            raise ValueError("没有可用的玩家颜色")
+            return {"success": False, "message": "没有可用的玩家颜色"}
 
-        new_player = PlayerState(
+        # 创建新玩家
+        player = PlayerState(
             player_id=str(uuid4()),
             user_id=user_id,
             player_color=available_colors[0],
             display_name=display_name,
             resources=ResourceSet(money=10, workers=3)
         )
-
-        game_state.players.append(new_player)
+        game_state.players.append(player)
         game_state.player_order.append(len(game_state.players) - 1)
 
         # 更新数据库
-        session.current_players = len(game_state.players)
         session.game_state = game_state.to_json()
+        session.current_players = len(game_state.players)
         self.repository.update(session)
 
         return {
+            "success": True,
+            "message": "加入游戏成功",
             "session_id": session_id,
-            "player_id": new_player.player_id,
-            "player_color": new_player.player_color.value,
-            "display_name": display_name
+            "player_id": player.player_id
         }
+
+    def _get_available_colors(self, players: List[PlayerState]) -> List[PlayerColor]:
+        """获取可用的玩家颜色"""
+        from ..core.models.enums import PlayerColor
+
+        used_colors = [p.player_color for p in players]
+        available_colors = [color for color in PlayerColor if color not in used_colors]
+        return available_colors
 
     def start_session(self, session_id: str, user_id: str) -> Dict[str, Any]:
         """开始游戏会话"""
         session = self.repository.get_by_id(session_id)
         if not session:
-            raise ValueError("游戏会话不存在")
+            return {"success": False, "message": "游戏会话不存在"}
 
         # 检查权限
         if session.host_player_id != user_id:
-            raise ValueError("只有房主可以开始游戏")
+            return {"success": False, "message": "只有房主可以开始游戏"}
 
-        # 加载游戏状态
+        # 反序列化游戏状态
         game_state = GameState.from_json(session.game_state)
 
         # 检查玩家数量
         if len(game_state.players) < 2:
-            raise ValueError("至少需要2名玩家才能开始游戏")
+            return {"success": False, "message": "至少需要2名玩家才能开始游戏"}
 
-        # 更新游戏状态
+        # 更新游戏状态 - 设置游戏阶段为玩家回合，而不是直接设置game_started
         game_state.current_phase = GamePhase.PLAYER_TURN
-        game_state.game_started = True
 
         # 更新数据库
         session.session_status = "playing"
@@ -181,5 +185,47 @@ class GameSessionService:
                 "created_by": session.created_by,
                 "created_at": session.created_at.isoformat() if session.created_at else None
             })
+
+        return result
+
+    def execute_action(self, session_id: str, action_type: ActionType, action_data: Dict[str, Any]) -> Dict[str, Any]:
+        """执行游戏行动"""
+        session = self.repository.get_by_id(session_id)
+        if not session:
+            raise ValueError("游戏会话不存在")
+
+        game_state = GameState.from_json(session.game_state)
+
+        # 根据行动类型创建行动实例
+        if action_type == ActionType.MOVE:
+            from src.core.actions.move import MoveAction
+            action = MoveAction(action_data)
+        elif action_type == ActionType.BUILD:
+            from src.core.actions.build import BuildAction
+            action = BuildAction(action_data)
+        elif action_type == ActionType.HIRE_WORKER:
+            from src.core.actions.hire_worker import HireWorkerAction
+            action = HireWorkerAction(action_data)
+        elif action_type == ActionType.BUY_CATTLE:
+            from src.core.actions.buy_cattle import BuyCattleAction
+            action = BuyCattleAction(action_data)
+        elif action_type == ActionType.SELL_CATTLE:
+            from src.core.actions.sell_cattle import SellCattleAction
+            action = SellCattleAction(action_data)
+        elif action_type == ActionType.USE_ABILITY:
+            from src.core.actions.use_ability import UseAbilityAction
+            action = UseAbilityAction(action_data)
+        # ... 其他行动类型
+
+        # 执行行动
+        result = action.execute(game_state)
+        if result["success"]:
+            # 更新游戏状态
+            session.game_state = game_state.to_json()
+            self.repository.update(session)
+
+            # 检查是否需要推进阶段
+            flow_controller = GameFlowController(game_state)
+            flow_controller.next_phase()
 
         return result

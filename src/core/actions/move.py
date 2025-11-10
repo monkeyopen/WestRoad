@@ -17,6 +17,10 @@ class MoveAction(GameAction):
             if field not in self.action_data:
                 raise ValueError(f"移动行动缺少必要字段: {field}")
 
+        # 验证步数是否为正数
+        if self.action_data["steps"] <= 0:
+            raise ValueError("移动步数必须为正数")
+
     def execute(self, game_state: GameState) -> Dict[str, Any]:
         """执行移动行动"""
         if not self.is_valid(game_state):

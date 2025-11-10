@@ -88,13 +88,20 @@ class GameState:
 
     def _player_to_dict(self, player: PlayerState) -> Dict[str, Any]:
         """玩家状态转换为字典"""
+        from .models.enums import PlayerColor  # 导入枚举
+
+        # 处理 player_color 字段
+        player_color = player.player_color
+        if hasattr(player_color, 'value'):
+            player_color_value = player_color.value
+        else:
+            player_color_value = player_color
+
         return {
             "player_id": player.player_id,
             "user_id": player.user_id,
-            "player_color": player.player_color.value,
+            "player_color": player_color_value,
             "display_name": player.display_name,
-            "position": player.position,
-            "previous_position": player.previous_position,
             "resources": {
                 "money": player.resources.money,
                 "workers": player.resources.workers,
@@ -218,3 +225,18 @@ class GameState:
             if player.player_id == player_id:
                 return i
         return None
+
+    def to_json(self) -> str:
+        """将游戏状态序列化为 JSON 字符串"""
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, json_str: str):
+        """从 JSON 字符串反序列化游戏状态"""
+        data = json.loads(json_str)
+        state = cls(data["session_id"], data.get("version", 0))
+        state.current_phase = GamePhase(data["current_phase"])
+        state.players = [PlayerState.from_dict(player_data) for player_data in data["players"]]
+        state.board_state = BoardState.from_dict(data["board_state"])
+        state.cattle_market = data["cattle_market"]
+        return state
