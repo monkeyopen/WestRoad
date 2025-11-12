@@ -88,6 +88,59 @@ class GameState:
             "action_history": self.action_history
         }
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'GameState':
+        """从字典创建GameState实例"""
+        game_state = cls(session_id=data["session_id"])
+
+        # 设置基础属性
+        game_state.game_version = data.get("game_version", "1.0")
+        game_state.current_phase = GamePhase(data["current_phase"])
+        game_state.current_round = data.get("current_round", 0)
+        game_state.current_player_index = data.get("current_player_index", 0)
+
+        # 处理时间字段
+        if data.get("turn_start_time"):
+            game_state.turn_start_time = datetime.fromisoformat(data["turn_start_time"])
+
+        # 重建玩家
+        game_state.players = []
+        for player_data in data.get("players", []):
+            player = PlayerState(
+                player_id=player_data["player_id"],
+                user_id=player_data["user_id"],
+                player_color=PlayerColor(player_data["player_color"]),
+                display_name=player_data["display_name"],
+                resources=ResourceSet(**player_data["resources"])
+            )
+            # 设置其他玩家属性
+            player.hand_cards = player_data.get("hand_cards", [])
+            player.victory_points = player_data.get("victory_points", 0)
+            player.stations_built = player_data.get("stations_built", 0)
+            player.cattle_sold_count = player_data.get("cattle_sold_count", 0)
+            player.buildings_built_count = player_data.get("buildings_built_count", 0)
+            player.workers_hired_count = player_data.get("workers_hired_count", 0)
+
+            game_state.players.append(player)
+
+        # 重建版图状态
+        game_state.board_state = BoardState.from_dict(data.get("board_state", {}))
+
+        # 重建其他属性
+        game_state.player_order = data.get("player_order", [])
+        game_state.cattle_market = data.get("cattle_market", [])
+        game_state.available_workers = data.get("available_workers", {})
+        game_state.max_players = data.get("max_players", 4)
+        game_state.game_config = data.get("game_config", {})
+        game_state.version = data.get("version", 1)
+        game_state.action_history = data.get("action_history", [])
+
+        # 处理最后更新时间
+        if data.get("last_updated"):
+            game_state.last_updated = datetime.fromisoformat(data["last_updated"])
+
+        return game_state
+
     def _player_to_dict(self, player: PlayerState) -> Dict[str, Any]:
         """玩家状态转换为字典"""
         from .models.enums import PlayerColor  # 导入枚举
@@ -297,11 +350,7 @@ class GameState:
         self.board_state.nodes[29].name = "堪萨斯城"
         self.board_state.nodes[29].actions = ["cattle_sale", "end_turn"]
 
-        # 设置分支点为特殊类型
-        for branch_id in [5, 10, 15, 20]:
-            self.board_state.nodes[branch_id].location_type = LocationType.BRANCH
-            self.board_state.nodes[branch_id].name = f"分支点{branch_id}"
-            self.board_state.nodes[branch_id].add_action("choose_path")
+
 
         # 放置建筑物
         self._place_buildings()
@@ -309,6 +358,30 @@ class GameState:
     def _place_buildings(self):
         """放置建筑物"""
         # 使用预定义的建筑放置点
+        """放置建筑物 - 修改版本：在5号节点随机放置建筑"""
+        import random
+
+        # 定义可选的建筑类型
+        building_options = [
+            BuildingType.BUILDING_TYPE_1,
+            BuildingType.BUILDING_TYPE_2,
+            BuildingType.BUILDING_TYPE_3
+        ]
+
+        # # 在5号节点随机选择一个建筑类型
+        # random_building = random.choice(building_options)
+
+        # 随机打乱建筑类型顺序
+        random.shuffle(building_options)
+
+        # 为5、10、15号节点分配不同的建筑
+        special_building_placement = {
+            5: building_options[0],
+            10: building_options[1],
+            15: building_options[2]
+        }
+
+
         building_placement = {
             1: BuildingType.STATION,
             3: BuildingType.RANCH,
@@ -323,8 +396,12 @@ class GameState:
             26: BuildingType.STATION
         }
 
+        # 将特殊节点的建筑分配合并到主建筑放置字典中
+        building_placement.update(special_building_placement)
+
         for node_id, building_type in building_placement.items():
             self.board_state.place_building(node_id, building_type)
+            print(f"在节点{node_id}放置了建筑: {building_type.value}")  # 调试信息
 
     def get_available_building_actions(self, location_id: int, player_id: str) -> List[Dict[str, Any]]:
         """获取在指定位置可用的建筑物动作"""
