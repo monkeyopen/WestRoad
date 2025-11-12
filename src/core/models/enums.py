@@ -24,3 +24,4 @@ class ActionType(Enum):
     BUY_CATTLE = "buy_cattle"  # 购买牛牌
     SELL_CATTLE = "sell_cattle"  # 卖出牛群
     USE_ABILITY = "use_ability"  # 使用能力
+

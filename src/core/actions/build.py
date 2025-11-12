@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .base import GameAction
 from ..game_state import GameState
 from ..models.enums import ActionType
@@ -83,13 +83,17 @@ class BuildAction(GameAction):
     def _get_building_cost(self, building_type: str) -> int:
         """获取建筑成本"""
         costs = {
-            "station": 3,  # 车站
-            "ranch": 2,  # 牧场
-            "hazard": 1,  # 危险建筑
-            "telegraph": 4,  # 电报站
-            "church": 3  # 教堂
+            "station": 3,
+            "ranch": 2,
+            "hazard": 1,
+            "telegraph": 4,
+            "church": 3,
+            # 新增建筑物的建造成本（注意：这是建造成本，不是使用成本）
+            "building_type_1": 2,  # 建筑物1建造成本2金钱
+            "building_type_2": 3,  # 建筑物2建造成本3金钱
+            "building_type_3": 2  # 建筑物3建造成本2金钱
         }
-        return costs.get(building_type, 2)  # 默认成本为2
+        return costs.get(building_type, 2)
 
     def _is_buildable_location(self, game_state: GameState, location_id: int, player_id: str) -> bool:
         """检查位置是否可建造"""
@@ -136,3 +140,42 @@ class BuildAction(GameAction):
             if hasattr(player.resources, resource):
                 current_value = getattr(player.resources, resource)
                 setattr(player.resources, resource, current_value + amount)
+
+    def _get_building_actions(self, building_type: str) -> List[Dict[str, Any]]:
+        """获取建筑物提供的动作配置"""
+        building_actions = {
+            "station": [
+                {"type": "move", "params": {}},  # 普通移动
+                {"type": "build", "params": {}}  # 建造
+            ],
+            "ranch": [
+                {"type": "hire_worker", "params": {}},
+                {"type": "buy_cattle", "params": {}}
+            ],
+            "hazard": [
+                {"type": "use_ability", "params": {}},
+                {"type": "move", "params": {}}
+            ],
+            "telegraph": [
+                {"type": "buy_cattle", "params": {}},
+                {"type": "sell_cattle", "params": {}}
+            ],
+            "church": [
+                {"type": "build", "params": {}},
+                {"type": "hire_worker", "params": {}}
+            ],
+            # 新增三种建筑物的动作组合
+            "building_type_1": [
+                {"type": "move", "params": {"fixed_one_step": True}},  # 固定1步移动
+                {"type": "build", "params": {}}
+            ],
+            "building_type_2": [
+                {"type": "buy_cattle", "params": {}},
+                {"type": "build", "params": {}}
+            ],
+            "building_type_3": [
+                {"type": "buy_cattle", "params": {}},
+                {"type": "move", "params": {"fixed_one_step": True}}  # 固定1步移动
+            ]
+        }
+        return building_actions.get(building_type, [])

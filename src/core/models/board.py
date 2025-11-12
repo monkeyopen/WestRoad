@@ -19,28 +19,174 @@ class LocationType(Enum):
 
 
 class BuildingType(Enum):
-    """建筑物类型枚举 - 定义可在建筑点上建造的具体建筑"""
-    STATION = "station"  # 车站
-    RANCH = "ranch"  # 牧场
-    HAZARD = "hazard"  # 危险建筑
-    TELEGRAPH = "telegraph"  # 电报站
-    CHURCH = "church"  # 教堂
-    # 预留15种其他建筑类型
-    BUILDING_6 = "building_6"
-    BUILDING_7 = "building_7"
-    BUILDING_8 = "building_8"
-    BUILDING_9 = "building_9"
-    BUILDING_10 = "building_10"
-    BUILDING_11 = "building_11"
-    BUILDING_12 = "building_12"
-    BUILDING_13 = "building_13"
-    BUILDING_14 = "building_14"
-    BUILDING_15 = "building_15"
-    BUILDING_16 = "building_16"
-    BUILDING_17 = "building_17"
-    BUILDING_18 = "building_18"
-    BUILDING_19 = "building_19"
-    BUILDING_20 = "building_20"
+    """建筑物类型枚举"""
+    STATION = "station"
+    RANCH = "ranch"
+    HAZARD = "hazard"
+    TELEGRAPH = "telegraph"
+    CHURCH = "church"
+    # 新增三种建筑物类型
+    BUILDING_TYPE_1 = "building_type_1"  # 移动1步 + 建造
+    BUILDING_TYPE_2 = "building_type_2"  # 买牛 + 建造
+    BUILDING_TYPE_3 = "building_type_3"  # 买牛 + 移动1步
+
+
+@dataclass
+class BuildingConfig:
+    """建筑物配置类"""
+    building_type: BuildingType
+    name: str
+    worker_cost: int  # 需要的工人数量
+    victory_points: int  # 分数
+    actions: List[str]  # 动作列表（最多3个）
+    description: str = ""
+
+    # 静态配置表
+    CONFIG_MAP: Dict[BuildingType, 'BuildingConfig'] = {}
+
+    def __post_init__(self):
+        # 注册到配置表
+        BuildingConfig.CONFIG_MAP[self.building_type] = self
+
+
+# 定义所有建筑物的配置
+BuildingConfig(
+    building_type=BuildingType.STATION,
+    name="车站",
+    worker_cost=1,
+    victory_points=2,
+    actions=["move", "build"],
+    description="提供移动和建造能力"
+)
+
+BuildingConfig(
+    building_type=BuildingType.RANCH,
+    name="牧场",
+    worker_cost=1,
+    victory_points=1,
+    actions=["hire_worker", "buy_cattle"],
+    description="提供雇佣工人和购买牛牌能力"
+)
+
+BuildingConfig(
+    building_type=BuildingType.HAZARD,
+    name="危险建筑",
+    worker_cost=0,
+    victory_points=0,
+    actions=["use_ability", "move"],
+    description="提供使用能力和移动能力"
+)
+
+BuildingConfig(
+    building_type=BuildingType.TELEGRAPH,
+    name="电报站",
+    worker_cost=2,
+    victory_points=3,
+    actions=["buy_cattle", "sell_cattle"],
+    description="提供买卖牛牌能力"
+)
+
+BuildingConfig(
+    building_type=BuildingType.CHURCH,
+    name="教堂",
+    worker_cost=1,
+    victory_points=2,
+    actions=["build", "hire_worker"],
+    description="提供建造和雇佣工人能力"
+)
+
+# 新增三种建筑物配置
+BuildingConfig(
+    building_type=BuildingType.BUILDING_TYPE_1,
+    name="贸易站",  # 示例名称
+    worker_cost=1,
+    victory_points=1,
+    actions=["move", "build"],  # 移动1步 + 建造
+    description="提供短距离移动和建造能力"
+)
+
+BuildingConfig(
+    building_type=BuildingType.BUILDING_TYPE_2,
+    name="畜牧场",  # 示例名称
+    worker_cost=2,
+    victory_points=2,
+    actions=["buy_cattle", "build"],  # 买牛 + 建造
+    description="专注于牲畜交易和基础设施建设"
+)
+
+BuildingConfig(
+    building_type=BuildingType.BUILDING_TYPE_3,
+    name="驿站",  # 示例名称
+    worker_cost=1,
+    victory_points=1,
+    actions=["buy_cattle", "move"],  # 买牛 + 移动1步
+    description="结合牲畜交易和快速移动"
+)
+
+
+@dataclass
+class Building:
+    """建筑物实例类"""
+    building_type: BuildingType
+    location_id: int
+    owner_id: Optional[str] = None  # 拥有者ID
+    is_neutral: bool = False  # 是否是中立建筑
+
+    @property
+    def config(self) -> BuildingConfig:
+        """获取建筑物配置"""
+        return BuildingConfig.CONFIG_MAP[self.building_type]
+
+    @property
+    def name(self) -> str:
+        """建筑物名称"""
+        return self.config.name
+
+    @property
+    def worker_cost(self) -> int:
+        """需要的工人数量"""
+        return self.config.worker_cost
+
+    @property
+    def victory_points(self) -> int:
+        """胜利分数"""
+        return self.config.victory_points
+
+    @property
+    def actions(self) -> List[str]:
+        """可执行的动作列表"""
+        return self.config.actions
+
+    @property
+    def description(self) -> str:
+        """建筑物描述"""
+        return self.config.description
+
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典"""
+        return {
+            "building_type": self.building_type.value,
+            "location_id": self.location_id,
+            "owner_id": self.owner_id,
+            "is_neutral": self.is_neutral,
+            "name": self.name,
+            "worker_cost": self.worker_cost,
+            "victory_points": self.victory_points,
+            "actions": self.actions,
+            "description": self.description
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'Building':
+        """从字典创建实例"""
+        building_type = BuildingType(data["building_type"])
+        building = cls(
+            building_type=building_type,
+            location_id=data["location_id"],
+            owner_id=data.get("owner_id"),
+            is_neutral=data.get("is_neutral", False)
+        )
+        return building
 
 
 @dataclass
@@ -100,142 +246,119 @@ class MapNode:
 
 @dataclass
 class BoardState:
-    """
-    版图状态类 - 管理整个游戏地图
-
-    属性:
-    - nodes: 所有地图节点的字典 (key为节点ID)
-
-    方法:
-    - initialize_nodes: 初始化30个节点
-    - connect_nodes: 连接两个节点
-    - get_available_paths: 获取从当前节点可到达的路径
-    - place_building: 在指定节点放置建筑
-    - to_dict: 转换为字典格式 (用于序列化)
-    - from_dict: 从字典重建对象 (用于反序列化)
-    """
+    """版图状态"""
     nodes: Dict[int, MapNode] = field(default_factory=dict)
+    buildings: Dict[int, Building] = field(default_factory=dict)  # 位置 -> 建筑物映射
+    neutral_buildings: List[Building] = field(default_factory=list)
+    player_buildings: Dict[str, List[Building]] = field(default_factory=dict)  # 玩家ID -> 建筑物列表
+    available_locations: List[int] = field(default_factory=list)
+    kansas_city_state: Dict[str, Any] = field(default_factory=dict)
 
-    def __post_init__(self):
-        """初始化后自动创建30个节点"""
-        if not self.nodes:
-            self.initialize_nodes()
+    def place_building(self, location_id: int, building_type: BuildingType, owner_id: Optional[str] = None):
+        """在指定位置放置建筑物"""
+        building = Building(
+            building_type=building_type,
+            location_id=location_id,
+            owner_id=owner_id,
+            is_neutral=(owner_id is None)  # 没有拥有者就是中立建筑
+        )
 
-    def initialize_nodes(self):
-        """初始化30个空节点"""
-        self.nodes = {}
-        for i in range(110):
-            # 设置节点名称和类型
-            name = f"位置{i}"
-            location_type = LocationType.BUILDING
+        self.buildings[location_id] = building
 
-            # 特殊节点处理
-            if i == 0:
-                name = "起点"
-                location_type = LocationType.START
-            elif i == 29:
-                name = "堪萨斯城"
-                location_type = LocationType.KANSAS_CITY
+        # 更新玩家建筑列表或中立建筑列表
+        if owner_id:
+            if owner_id not in self.player_buildings:
+                self.player_buildings[owner_id] = []
+            self.player_buildings[owner_id].append(building)
+        else:
+            self.neutral_buildings.append(building)
 
-            # 创建节点
-            self.nodes[i] = MapNode(
-                node_id=i,
-                name=name,
-                location_type=location_type,
-                actions=["move"]  # 默认所有位置都可以移动
-            )
+        # 从可用位置中移除
+        if location_id in self.available_locations:
+            self.available_locations.remove(location_id)
 
-    def connect_nodes(self, from_node_id: int, to_node_id: int):
-        """连接两个节点 (创建有向边)"""
-        if from_node_id in self.nodes and to_node_id in self.nodes:
-            # 从 from_node 到 to_node 添加一条边
-            self.nodes[from_node_id].add_next_node(to_node_id)
-            # 同时，to_node 的前驱节点添加 from_node
-            self.nodes[to_node_id].add_previous_node(from_node_id)
+    def get_building_at_location(self, location_id: int) -> Optional[Building]:
+        """获取指定位置的建筑物"""
+        return self.buildings.get(location_id)
 
-    def get_available_paths(self, current_node_id: int) -> List[int]:
-        """获取从当前节点可到达的路径"""
-        if current_node_id in self.nodes:
-            return self.nodes[current_node_id].next_nodes.copy()
-        return []
+    def get_player_buildings(self, player_id: str) -> List[Building]:
+        """获取玩家的所有建筑物"""
+        return self.player_buildings.get(player_id, [])
 
-    def place_building(self, node_id: int, building_type: BuildingType):
-        """在指定节点放置建筑"""
-        if node_id in self.nodes:
-            node = self.nodes[node_id]
-            node.building_type = building_type
+    def get_available_actions_at_location(self, location_id: int, player_id: str) -> List[Dict[str, Any]]:
+        """获取在指定位置可用的动作"""
+        building = self.get_building_at_location(location_id)
+        if not building:
+            return []
 
-            # 根据建筑类型添加特定动作
-            if building_type == BuildingType.STATION:
-                node.add_action("train_move")
-            elif building_type == BuildingType.RANCH:
-                node.add_action("buy_cattle")
-            elif building_type == BuildingType.HAZARD:
-                node.add_action("avoid_hazard")
-            elif building_type == BuildingType.TELEGRAPH:
-                node.add_action("send_message")
-            elif building_type == BuildingType.CHURCH:
-                node.add_action("pray")
+        # 检查玩家是否有权使用这个建筑物
+        if building.owner_id and building.owner_id != player_id:
+            return []  # 建筑物有拥有者且不是当前玩家
 
-            # 通用建筑动作
-            node.add_action("use_building")
+        return self._get_building_actions(building, player_id)
+
+    def _get_building_actions(self, building: Building, player_id: str) -> List[Dict[str, Any]]:
+        """获取建筑物提供的动作配置"""
+        action_configs = {
+            "move": {"action_type": ActionType.MOVE, "params": {}},
+            "move_one_step": {"action_type": ActionType.MOVE, "params": {"fixed_one_step": True}},
+            "build": {"action_type": ActionType.BUILD, "params": {}},
+            "hire_worker": {"action_type": ActionType.HIRE_WORKER, "params": {}},
+            "buy_cattle": {"action_type": ActionType.BUY_CATTLE, "params": {}},
+            "sell_cattle": {"action_type": ActionType.SELL_CATTLE, "params": {}},
+            "use_ability": {"action_type": ActionType.USE_ABILITY, "params": {}}
+        }
+
+        available_actions = []
+        for action_key in building.actions:
+            if action_key in action_configs:
+                config = action_configs[action_key].copy()
+                config["params"]["player_id"] = player_id
+                config["params"]["location_id"] = building.location_id
+
+                # 为建造动作自动设置位置
+                if action_key == "build":
+                    config["params"]["building_type"] = "some_type"  # 需要具体类型
+
+                available_actions.append(config)
+
+        return available_actions
 
     def to_dict(self) -> Dict[str, Any]:
-        """转换为字典 (用于序列化)"""
+        """转换为字典"""
         return {
-            "nodes": {
-                node_id: {
-                    "node_id": node.node_id,
-                    "name": node.name,
-                    "location_type": node.location_type.value,
-                    "building_type": node.building_type.value if node.building_type else None,
-                    "next_nodes": node.next_nodes,
-                    "previous_nodes": node.previous_nodes,
-                    "x": node.x,
-                    "y": node.y,
-                    "actions": node.actions
-                }
-                for node_id, node in self.nodes.items()
-            }
+            "nodes": {k: self._node_to_dict(v) for k, v in self.nodes.items()},
+            "buildings": {k: v.to_dict() for k, v in self.buildings.items()},
+            "neutral_buildings": [b.to_dict() for b in self.neutral_buildings],
+            "player_buildings": {k: [b.to_dict() for b in v] for k, v in self.player_buildings.items()},
+            "available_locations": self.available_locations,
+            "kansas_city_state": self.kansas_city_state
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'BoardState':
-        """从字典重建对象 (用于反序列化)"""
+        """从字典创建实例"""
         board = cls()
+
+        # 重建节点
         if "nodes" in data:
-            for node_id, node_data in data["nodes"].items():
-                # 解析地点类型
-                location_type = LocationType(node_data["location_type"])
+            for node_id_str, node_data in data["nodes"].items():
+                node_id = int(node_id_str)
+                board.nodes[node_id] = MapNode.from_dict(node_data)
 
-                # 解析建筑类型 (如果有)
-                building_type = None
-                if node_data["building_type"]:
-                    building_type = BuildingType(node_data["building_type"])
+        # 重建建筑物
+        if "buildings" in data:
+            for location_str, building_data in data["buildings"].items():
+                location_id = int(location_str)
+                board.buildings[location_id] = Building.from_dict(building_data)
 
-                # 创建节点
-                node = MapNode(
-                    node_id=node_data["node_id"],
-                    name=node_data["name"],
-                    location_type=location_type,
-                    building_type=building_type,
-                    next_nodes=node_data["next_nodes"],
-                    previous_nodes=node_data["previous_nodes"],
-                    x=node_data.get("x", 0.0),
-                    y=node_data.get("y", 0.0),
-                    actions=node_data.get("actions", [])
-                )
-                board.nodes[int(node_id)] = node
+        # 重建其他数据
+        board.neutral_buildings = [Building.from_dict(b) for b in data.get("neutral_buildings", [])]
+        board.player_buildings = {
+            player_id: [Building.from_dict(b) for b in buildings]
+            for player_id, buildings in data.get("player_buildings", {}).items()
+        }
+        board.available_locations = data.get("available_locations", [])
+        board.kansas_city_state = data.get("kansas_city_state", {})
+
         return board
-
-    def get_node(self, node_id: int) -> Optional[MapNode]:
-        """获取指定节点"""
-        return self.nodes.get(node_id)
-
-    def get_building_nodes(self) -> List[MapNode]:
-        """获取所有有建筑的节点"""
-        return [node for node in self.nodes.values() if node.has_building()]
-
-    def get_buildable_nodes(self) -> List[MapNode]:
-        """获取所有可建造的节点"""
-        return [node for node in self.nodes.values() if node.is_buildable()]

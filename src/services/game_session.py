@@ -234,3 +234,57 @@ class GameSessionService:
             flow_controller.next_phase()
 
         return result
+
+    def execute_building_action(self, session_id: str, location_id: int,
+                                action_index: int, player_id: str) -> Dict[str, Any]:
+        """执行建筑物动作"""
+        session = self.repository.get_by_id(session_id)
+        if not session:
+            return {"success": False, "message": "游戏会话不存在"}
+
+        game_state = GameState.from_json(session.game_state)
+
+        # 1. 验证玩家是否可以访问该建筑物
+        building = game_state.board_state.get_building_at_location(location_id)
+        if not building:
+            return {"success": False, "message": "该位置没有建筑物"}
+
+        # 2. 检查建筑物所有权
+        if building.owner_id and building.owner_id != player_id:
+            return {"success": False, "message": "您不是该建筑物的拥有者"}
+
+        # 3. 检查玩家是否有足够工人
+        player = game_state.get_player_by_id(player_id)
+        if player.resources.workers < building.worker_cost:
+            return {"success": False, "message": f"工人不足，需要{building.worker_cost}个工人"}
+
+        # 4. 获取建筑物可用的动作
+        available_actions = game_state.get_available_building_actions(location_id, player_id)
+        if action_index >= len(available_actions):
+            return {"success": False, "message": "无效的动作索引"}
+
+        # 5. 扣除工人成本
+        player.resources.workers -= building.worker_cost
+
+        # 6. 执行选定的动作
+        action_config = available_actions[action_index]
+        action_type = action_config["action_type"]
+        action_data = action_config["params"]
+
+        # 使用现有的 execute_action 方法
+        result = self.execute_action(session_id, action_type, action_data)
+
+        # 7. 更新游戏状态
+        session.game_state = game_state.to_json()
+        self.repository.update(session)
+
+        return {
+            "success": True,
+            "message": f"建筑物动作执行成功",
+            "building_use": {
+                "building_type": building.building_type.value,
+                "worker_cost": building.worker_cost,
+                "remaining_workers": player.resources.workers
+            },
+            "action_result": result
+        }

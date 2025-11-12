@@ -325,3 +325,48 @@ class GameState:
 
         for node_id, building_type in building_placement.items():
             self.board_state.place_building(node_id, building_type)
+
+    def get_available_building_actions(self, location_id: int, player_id: str) -> List[Dict[str, Any]]:
+        """获取在指定位置可用的建筑物动作"""
+        return self.board_state.get_available_actions_at_location(location_id, player_id)
+
+    def can_use_building(self, location_id: int, player_id: str) -> bool:
+        """检查玩家是否可以使用指定位置的建筑物"""
+        building = self.board_state.get_building_at_location(location_id)
+        if not building:
+            return False
+
+        # 检查工人数量
+        player = self.get_player_by_id(player_id)
+        if not player or player.resources.workers < building.worker_cost:
+            return False
+
+        # 检查建筑物所有权
+        if building.owner_id and building.owner_id != player_id:
+            return False
+
+        return True
+
+    def use_building(self, location_id: int, player_id: str) -> Dict[str, Any]:
+        """使用建筑物（消耗工人）"""
+        if not self.can_use_building(location_id, player_id):
+            return {"success": False, "message": "无法使用该建筑物"}
+
+        building = self.board_state.get_building_at_location(location_id)
+        player = self.get_player_by_id(player_id)
+
+        # 扣除工人
+        player.resources.workers -= building.worker_cost
+
+        # 更新游戏状态
+        self.increment_version()
+
+        return {
+            "success": True,
+            "message": f"使用{building.name}成功，消耗{building.worker_cost}工人",
+            "player_id": player_id,
+            "location_id": location_id,
+            "building_type": building.building_type.value,
+            "worker_cost": building.worker_cost,
+            "remaining_workers": player.resources.workers
+        }
