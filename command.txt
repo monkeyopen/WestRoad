@@ -6,7 +6,13 @@ Curl -s "https://api.github.com/repos/monkeyopen/WestRoad/git/trees/master?recur
 设计文档
 https://raw.githubusercontent.com/monkeyopen/WestRoad/blob/master/doc/《大西部之路》游戏后台设计文档.pdf
 相关代码如下
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/.gitignore
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/README.md
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/command.txt
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config/__init__.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config/cards.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config/settings.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/doc
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/doc/《大西部之路》游戏后台设计文档.pdf
@@ -17,7 +23,10 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/run_test
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/__init__.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/check_db.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/deck_detailed.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/deck_system.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/init_db.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/map_initialization.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_build_action.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_cattle_actions.py
@@ -48,7 +57,10 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/__init__.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/board.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/card.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/deck_manager.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/enums.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/player.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/rules
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/rules/__init__.py
@@ -58,7 +70,6 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/main
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/services
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/services/__init__.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/services/game_session.py
-https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/services/map_service.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/storage
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/storage/__init__.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/storage/database.py

@@ -275,8 +275,8 @@ def interactive_test():
             except ValueError:
                 print("请输入有效的数字")
 
-            else:
-                print("无效选择，请重新输入")
+        else:
+            print("无效选择，请重新输入")
 
     return True
 
