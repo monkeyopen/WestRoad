@@ -252,7 +252,7 @@ class BoardState:
         self.nodes = {}
 
         # 创建基础节点 (0-29)
-        for i in range(30):
+        for i in range(120):
             self.nodes[i] = MapNode(
                 node_id=i,
                 name=f"节点{i}",
@@ -261,18 +261,18 @@ class BoardState:
                 y=300
             )
 
-        # 创建分支节点 (51-56, 61-65, 71-72, 81-86, 91-92, 101-108)
-        branch_nodes = list(range(51, 57)) + list(range(61, 66)) + [71, 72] + \
-                       list(range(81, 87)) + [91, 92] + list(range(101, 109))
-
-        for node_id in branch_nodes:
-            self.nodes[node_id] = MapNode(
-                node_id=node_id,
-                name=f"分支节点{node_id}",
-                location_type=LocationType.BRANCH,
-                x=200 + (node_id % 10) * 40,  # 简单布局
-                y=150 + (node_id // 10) * 30
-            )
+        # # 创建分支节点 (51-56, 61-65, 71-72, 81-86, 91-92, 101-108)
+        # branch_nodes = list(range(51, 57)) + list(range(61, 66)) + [71, 72] + \
+        #                list(range(81, 87)) + [91, 92] + list(range(101, 109))
+        #
+        # for node_id in branch_nodes:
+        #     self.nodes[node_id] = MapNode(
+        #         node_id=node_id,
+        #         name=f"分支节点{node_id}",
+        #         location_type=LocationType.BRANCH,
+        #         x=200 + (node_id % 10) * 40,  # 简单布局
+        #         y=150 + (node_id // 10) * 30
+        #     )
 
         print(f"已初始化 {len(self.nodes)} 个地图节点")
 

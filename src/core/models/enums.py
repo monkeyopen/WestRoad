@@ -25,3 +25,22 @@ class ActionType(Enum):
     SELL_CATTLE = "sell_cattle"  # 卖出牛群
     USE_ABILITY = "use_ability"  # 使用能力
 
+
+
+class WorkerType(Enum):
+    """工人类型枚举"""
+    DRIVER = "driver"      # 司机
+    COWBOY = "cowboy"     # 牛仔
+    BUILDER = "builder"   # 建筑工人
+
+class CardType(Enum):
+    """牌类型枚举"""
+    CATTLE = "cattle"  # 牛牌
+    ACTION_A = "action_a"  # 动作A牌
+    ACTION_B = "action_b"  # 动作B牌
+    ACTION_C = "action_c"  # 动作C牌
+    MISSION = "mission"  # 任务牌
+    TEST= "test"  # 测试牌
+
+
+

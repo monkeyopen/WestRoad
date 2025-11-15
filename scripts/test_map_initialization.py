@@ -11,7 +11,22 @@ from src.core.models.enums import GamePhase
 from src.core.models.board import LocationType
 
 
-def test_map_initialization():
+# 确保导入 BuildingConfig 和相关的配置实例
+try:
+    from src.core.models.board import BuildingConfig, BuildingType
+    # 导入配置实例以确保它们被创建
+    from src.core.models.board import (
+        STATION_CONFIG, RANCH_CONFIG, HAZARD_CONFIG,
+        TELEGRAPH_CONFIG, CHURCH_CONFIG,
+        BUILDING_TYPE_1_CONFIG, BUILDING_TYPE_2_CONFIG, BUILDING_TYPE_3_CONFIG
+    )
+    print("✅ BuildingConfig 和相关配置导入成功")
+except ImportError as e:
+    print(f"❌ 导入错误: {e}")
+    # 如果导入失败，尝试替代方案
+    from src.core.models.board import BuildingConfig, BuildingType
+
+def map_initialization():
     """测试地图初始化功能"""
     print("=== 测试地图初始化 ===")
 
@@ -60,6 +75,15 @@ def test_map_initialization():
         if node.building_type:
             building_nodes.append((node_id, node))
             print(f"节点{node_id}: {node.building_type.value} (类型: {node.location_type.value})")
+            # 从 BuildingConfig.CONFIG_MAP 获取建筑配置
+            building_config = BuildingConfig.CONFIG_MAP.get(node.building_type)
+
+            if building_config:
+                # 获取该建筑的动作列表
+                actions = building_config.actions
+                print(f"节点{node_id}的建筑 {node.building_type.value} 可执行的动作: {actions}")
+            else:
+                print(f"未找到建筑类型 {node.building_type.value} 的配置")
 
     # 打印所有节点的连接关系
     print("\n=== 完整节点连接关系 ===")
@@ -91,4 +115,4 @@ def test_map_initialization():
 
 
 if __name__ == "__main__":
-    test_map_initialization()
+    map_initialization()

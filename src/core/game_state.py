@@ -5,11 +5,16 @@ import json
 from uuid import uuid4
 import random
 from .models.board import LocationType, BuildingType
+from .models.card import Card
 
 # 使用相对导入
 from .models.enums import GamePhase, PlayerColor
 from .models.player import PlayerState, ResourceSet, CattleCard
 from .models.board import BoardState, MapNode, BuildingType
+from .models.labor_market import LaborMarket
+from .models.deck_manager import DeckManager, DeckConfig
+from .models.enums import CardType
+from config.cards import DECK_CONFIGS
 
 
 @dataclass
@@ -50,6 +55,25 @@ class GameState:
     # 游戏历史
     action_history: List[Dict[str, Any]] = field(default_factory=list)
 
+    def __init__(self, session_id: str):
+        self.labor_market = LaborMarket()  # 初始化人才市场
+        self.deck_manager = DeckManager()  # 初始化牌堆管理器
+        self._initialize_decks()  # 初始化所有牌堆
+
+    def _initialize_decks(self):
+        """初始化所有牌堆"""
+        # 将配置转换为DeckConfig对象
+        deck_configs = {}
+        for card_type_str, config in DECK_CONFIGS.items():
+            card_type = CardType(card_type_str)
+            deck_configs[card_type] = DeckConfig(
+                card_type=card_type,
+                total_count=config["total_count"],
+                card_prototypes=config["card_prototypes"]
+            )
+
+        self.deck_manager.initialize_decks(deck_configs)
+
     @property
     def current_player(self) -> Optional[PlayerState]:
         """获取当前回合玩家"""
@@ -85,6 +109,8 @@ class GameState:
             "game_config": self.game_config,
             "version": self.version,
             "last_updated": self.last_updated.isoformat(),
+            "labor_market": self.labor_market.to_dict(),
+            "deck_manager": self.deck_manager.to_dict(),
             "action_history": self.action_history
         }
 
@@ -138,6 +164,13 @@ class GameState:
         # 处理最后更新时间
         if data.get("last_updated"):
             game_state.last_updated = datetime.fromisoformat(data["last_updated"])
+
+        if "labor_market" in data:
+            game_state.labor_market = LaborMarket.from_dict(data["labor_market"])
+
+        # 重建牌堆管理器
+        if "deck_manager" in data:
+            game_state.deck_manager = DeckManager.from_dict(data["deck_manager"])
 
         return game_state
 
@@ -209,37 +242,24 @@ class GameState:
             # "owner_id": node.owner_id,
         }
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'GameState':
-        """从字典创建GameState实例 - 修复版本"""
-        game_state = cls(session_id=data["session_id"])
 
-        # ... 其他初始化代码 ...
 
-        # 修复版图状态重建
-        board_data = data.get("board_state", {})
-        if "nodes" in board_data:
+    # 牌堆相关方法
+    def draw_cards(self, card_type: CardType, count: int = 1) -> List[Card]:
+        """抽取牌"""
+        return self.deck_manager.draw_cards(card_type, count)
 
-            game_state.board_state = BoardState()
-            game_state.board_state.nodes = {}
+    def get_deck_status(self) -> Dict[CardType, Dict[str, int]]:
+        """获取牌堆状态"""
+        return self.deck_manager.get_deck_status()
 
-            for node_id_str, node_data in board_data["nodes"].items():
-                node_id = int(node_id_str)
-                game_state.board_state.nodes[node_id] = MapNode(
-                    node_id=node_id,
-                    building_type=BuildingType(node_data["building_type"]),
-                    next_nodes=node_data["next_nodes"],
-                    owner_id=node_data.get("owner_id")
-                )
+    def discard_cards(self, card_type: CardType, cards: List[Card]):
+        """弃牌"""
+        self.deck_manager.discard_cards(card_type, cards)
 
-            # 设置其他属性
-            game_state.board_state.neutral_buildings = board_data.get("neutral_buildings", [])
-            game_state.board_state.player_buildings = board_data.get("player_buildings", {})
-            game_state.board_state.available_locations = board_data.get("available_locations", [])
-            game_state.board_state.kansas_city_state = board_data.get("kansas_city_state", {})
-
-        return game_state
-
+    def reshuffle_deck(self, card_type: CardType):
+        """重新洗牌"""
+        self.deck_manager.reshuffle_deck(card_type)
     def clone(self) -> 'GameState':
         """创建游戏状态的深拷贝"""
         return GameState.from_dict(self.to_dict())
@@ -339,8 +359,6 @@ class GameState:
         self.board_state.connect_nodes(107, 108)
         self.board_state.connect_nodes(108, 12)
 
-
-
         # 设置特殊地点的动作
         self.board_state.nodes[0].location_type = LocationType.START
         self.board_state.nodes[0].name = "起点"
@@ -349,8 +367,6 @@ class GameState:
         self.board_state.nodes[29].location_type = LocationType.KANSAS_CITY
         self.board_state.nodes[29].name = "堪萨斯城"
         self.board_state.nodes[29].actions = ["cattle_sale", "end_turn"]
-
-
 
         # 放置建筑物
         self._place_buildings()
@@ -380,7 +396,6 @@ class GameState:
             10: building_options[1],
             15: building_options[2]
         }
-
 
         building_placement = {
             1: BuildingType.STATION,
