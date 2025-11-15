@@ -12,6 +12,7 @@ class LocationType(Enum):
     KANSAS_CITY = "kansas_city"  # 堪萨斯城（卖牛地点）
     BRANCH = "branch"
     NORMAL = "normal"
+    EVENT = "event"
 
 
 class BuildingType(Enum):
@@ -25,6 +26,8 @@ class BuildingType(Enum):
     BUILDING_TYPE_1 = "building_type_1"  # 移动1步 + 建造
     BUILDING_TYPE_2 = "building_type_2"  # 买牛 + 建造
     BUILDING_TYPE_3 = "building_type_3"  # 买牛 + 移动1步
+    EMPTY = "empty"  # 空地
+    EVENT = "event"  # 事件地点
 
 
 @dataclass
@@ -182,7 +185,7 @@ class MapNode:
     node_id: int
     name: str = ""
     location_type: LocationType = LocationType.NORMAL
-    building_type: Optional[BuildingType] = None
+    building_type: BuildingType = BuildingType.EMPTY
     next_nodes: List[int] = field(default_factory=list)
     previous_nodes: List[int] = field(default_factory=list)
     x: float = 0.0
@@ -241,6 +244,7 @@ class MapNode:
 @dataclass
 class BoardState:
     """版图状态"""
+
     def __init__(self):
         self.nodes = {}
         self.neutral_buildings = []
@@ -262,6 +266,8 @@ class BoardState:
                 x=50 + i * 30,  # 简单水平布局
                 y=300
             )
+            if i in [51, 52, 53, 54, 61, 62, 63, 64, 81, 82, 83, 84, 101, 102, 103, 104, 105, 106, 107, 108, 109]:
+                self.nodes[i].location_type = LocationType.EVENT
 
         # # 创建分支节点 (51-56, 61-65, 71-72, 81-86, 91-92, 101-108)
         # branch_nodes = list(range(51, 57)) + list(range(61, 66)) + [71, 72] + \
@@ -287,12 +293,6 @@ class BoardState:
             if from_id not in self.nodes[to_id].previous_nodes:
                 self.nodes[to_id].previous_nodes.append(from_id)
 
-    def place_building(self, node_id: int, building_type: BuildingType):
-        """在指定节点放置建筑"""
-        if node_id in self.nodes:
-            self.nodes[node_id].building_type = building_type
-            print(f"在节点 {node_id} 放置了 {building_type.value}")
-
     def place_building(self, node_id: int, building_type: BuildingType, owner_id: Optional[str] = None):
         """在指定节点放置建筑"""
         if node_id in self.nodes:
@@ -300,7 +300,6 @@ class BoardState:
             print(f"在节点 {node_id} 放置了 {building_type.value}")
         else:
             print(f"错误：节点 {node_id} 不存在")
-
 
     def get_building_at_location(self, location_id: int) -> Optional[Building]:
         """获取指定位置的建筑物"""

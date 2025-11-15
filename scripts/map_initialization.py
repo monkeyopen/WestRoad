@@ -10,7 +10,6 @@ from src.core.game_state import GameState
 from src.core.models.enums import GamePhase
 from src.core.models.board import LocationType
 
-
 # 确保导入 BuildingConfig 和相关的配置实例
 try:
     from src.core.models.board import BuildingConfig, BuildingType
@@ -71,6 +70,7 @@ def map_initialization():
     print("\n=== 建筑放置情况 ===")
     building_nodes = []
     for node_id, node in game_state.board_state.nodes.items():
+        print(f"\n节点:{node_id}: 名称:{node.name}, 类型: {node.location_type.value}")
         if node.building_type:
             building_nodes.append((node_id, node))
             print(f"节点{node_id}: {node.building_type.value} (类型: {node.location_type.value})")
@@ -112,6 +112,8 @@ def map_initialization():
         print(
             f"  节点{next_id}: {next_node.name}, 建筑: {next_node.building_type.value if next_node.building_type else '无'}")
 
+    # game_state.future_area.display()
+    # game_state.labor_market.display()
 
 if __name__ == "__main__":
     map_initialization()

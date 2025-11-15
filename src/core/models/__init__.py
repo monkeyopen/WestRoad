@@ -3,10 +3,12 @@
 from .enums import GamePhase, PlayerColor, ActionType
 from .player import PlayerState, ResourceSet, CattleCard
 from .board import MapNode, BoardState, LocationType, BuildingType
+from .future_area import FutureArea, FutureAreaColumnType
 
 # 导出所有公共类
 __all__ = [
     'GamePhase', 'PlayerColor', 'ActionType',
     'PlayerState', 'ResourceSet', 'CattleCard',
-    'MapNode', 'BoardState', 'LocationType', 'BuildingType'
+    'MapNode', 'BoardState', 'LocationType', 'BuildingType',
+    'FutureArea', 'FutureAreaColumnType'
 ]

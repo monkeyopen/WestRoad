@@ -15,6 +15,7 @@ from .models.labor_market import LaborMarket
 from .models.deck_manager import DeckManager, DeckConfig
 from .models.enums import CardType
 from config.cards import DECK_CONFIGS
+from .models.future_area import FutureArea
 
 
 @dataclass
@@ -55,13 +56,22 @@ class GameState:
     # 游戏历史
     action_history: List[Dict[str, Any]] = field(default_factory=list)
 
+    # 未来区
+    future_area: FutureArea = field(default_factory=FutureArea)
+
     def __init__(self, session_id: str):
         if not hasattr(self, 'session_id') or not self.session_id:
             self.session_id = str(uuid4())
+
         self.board_state = BoardState()
-        self.labor_market = LaborMarket()  # 初始化人才市场
         self.deck_manager = DeckManager()  # 初始化牌堆管理器
         self._initialize_decks()  # 初始化所有牌堆
+        self.labor_market = LaborMarket()  # 初始化人才市场
+
+        # # 初始化未来区
+        self.future_area = FutureArea()
+
+
 
     def _initialize_decks(self):
         """初始化所有牌堆"""
@@ -76,6 +86,43 @@ class GameState:
             )
 
         self.deck_manager.initialize_decks(deck_configs)
+
+    def take_card_from_future_area(self, row: int, col: int, player_id: str) -> Dict[str, Any]:
+        """
+        从未来区取走一张牌
+
+        Args:
+            row: 行索引 (0或1)
+            col: 列索引 (0, 1, 2)
+            player_id: 玩家ID
+
+        Returns:
+            操作结果
+        """
+        # 获取玩家
+        player = self.get_player_by_id(player_id)
+        if not player:
+            return {"success": False, "message": "玩家不存在"}
+
+        # 从未来区取牌
+        card = self.future_area.take_card(row, col, self.deck_manager)
+
+        if not card:
+            return {"success": False, "message": "该位置没有牌"}
+
+        # 将牌添加到玩家手牌
+        player.hand_cards.append(card)
+
+        # 更新游戏状态
+        self.increment_version()
+
+        return {
+            "success": True,
+            "message": f"成功获取牌: {card['name']}",
+            "player_id": player_id,
+            "card": card,
+            "new_hand_count": len(player.hand_cards)
+        }
 
     @property
     def current_player(self) -> Optional[PlayerState]:
@@ -107,13 +154,14 @@ class GameState:
             # "player_order": self.player_order,
             "board_state": self._board_to_dict(),
             # "cattle_market": self.cattle_market,
-            "available_workers": self.available_workers,
+            # "available_workers": self.available_workers,
             "max_players": self.max_players,
-            "game_config": self.game_config,
+            # "game_config": self.game_config,
             "version": self.version,
-            "last_updated": self.last_updated.isoformat(),
+            # "last_updated": self.last_updated.isoformat(),
             "labor_market": self.labor_market.to_dict(),
             "deck_manager": self.deck_manager.to_dict(),
+            "future_area": self.future_area.to_dict()
             # "action_history": self.action_history
         }
 
@@ -174,6 +222,10 @@ class GameState:
         # 重建牌堆管理器
         if "deck_manager" in data:
             game_state.deck_manager = DeckManager.from_dict(data["deck_manager"])
+
+        # 反序列化未来区
+        if "future_area" in data:
+            game_state.future_area = FutureArea.from_dict(data["future_area"])
 
         return game_state
 
@@ -294,11 +346,11 @@ class GameState:
     def from_json(cls, json_str: str):
         """从 JSON 字符串反序列化游戏状态"""
         data = json.loads(json_str)
-        state = cls(data["session_id"], data.get("version", 0))
+        state = cls(data["session_id"])
         state.current_phase = GamePhase(data["current_phase"])
-        state.players = [PlayerState.from_dict(player_data) for player_data in data["players"]]
+        # state.players = [PlayerState.from_dict(player_data) for player_data in data["players"]]
         state.board_state = BoardState.from_dict(data["board_state"])
-        state.cattle_market = data["cattle_market"]
+        # state.cattle_market = data["cattle_market"]
         return state
 
     # 在GameState类中添加地图初始化方法
@@ -352,15 +404,15 @@ class GameState:
         self.board_state.connect_nodes(92, 19)
 
         # 帐篷支路
-        self.board_state.connect_nodes(10, 101)
-        self.board_state.connect_nodes(101, 102)
-        self.board_state.connect_nodes(102, 103)
-        self.board_state.connect_nodes(103, 104)
+        self.board_state.connect_nodes(10, 104)
         self.board_state.connect_nodes(104, 105)
         self.board_state.connect_nodes(105, 106)
         self.board_state.connect_nodes(106, 107)
         self.board_state.connect_nodes(107, 108)
-        self.board_state.connect_nodes(108, 12)
+        self.board_state.connect_nodes(108, 109)
+        self.board_state.connect_nodes(109, 110)
+        self.board_state.connect_nodes(110, 111)
+        self.board_state.connect_nodes(111, 12)
 
         # 设置特殊地点的动作
         self.board_state.nodes[0].location_type = LocationType.START
@@ -373,6 +425,8 @@ class GameState:
 
         # 放置建筑物
         self._place_buildings()
+
+        self.place_action_a_cards()
 
     def _place_buildings(self):
         """
@@ -453,6 +507,122 @@ class GameState:
         node.add_action("use_public_building")
 
         print(f"✅ 节点{node_id}：放置{card.name}")
+
+    def place_action_a_cards(self):
+        """
+        从动作A牌堆抽取7张牌，根据牌属性放置到对应支路
+        """
+        print("=== 放置动作A牌到对应支路 ===")
+
+        # 从动作A牌堆抽取7张牌
+        action_a_cards = self.deck_manager.draw_cards(CardType.ACTION_A, 7)
+        print(f"从动作A牌堆抽取了 {len(action_a_cards)} 张牌")
+
+        # 定义支路节点范围
+        flood_nodes = [51, 52, 53, 54]  # 水灾支路
+        drought_nodes = [61, 62, 63, 64]  # 旱灾支路
+        rockfall_nodes = [81, 82, 83, 84]  # 落石支路
+        tent_nodes = [101, 102, 103, 104, 105, 106, 107, 108, 109]  # 帐篷支路
+
+        # 初始化支路状态（记录每个支路已放置的牌数）
+        flood_count = 0
+        drought_count = 0
+        rockfall_count = 0
+        tent_count = 0
+
+        for i, card in enumerate(action_a_cards):
+            print(f"\n处理第 {i + 1} 张牌: {card.name}")
+            print(f"  特殊能力: {card.special_ability}")
+
+            placed = False
+
+            # 根据牌的特殊能力判断放置位置
+            if "水灾" in card.description:
+                # 水灾牌放在水灾支路
+                if flood_count < len(flood_nodes):
+                    target_node_id = flood_nodes[flood_count]
+                    placed = self._place_card_on_node(card, target_node_id, "水灾")
+                    if placed:
+                        flood_count += 1
+                        print(f"  ✅ 放置到水灾支路节点 {target_node_id}")
+                else:
+                    print("  ❌ 水灾支路已满，丢弃")
+
+            elif "旱灾" in card.name or card.special_ability in ["-1", "-2"] and "旱灾" in card.description:
+                # 旱灾牌放在旱灾支路
+                if drought_count < len(drought_nodes):
+                    target_node_id = drought_nodes[drought_count]
+                    placed = self._place_card_on_node(card, target_node_id, "旱灾")
+                    if placed:
+                        drought_count += 1
+                        print(f"  ✅ 放置到旱灾支路节点 {target_node_id}")
+                else:
+                    print("  ❌ 旱灾支路已满，丢弃")
+
+            elif "落石" in card.name or card.special_ability in ["-1", "-2"] and "落石" in card.description:
+                # 落石牌放在落石支路
+                if rockfall_count < len(rockfall_nodes):
+                    target_node_id = rockfall_nodes[rockfall_count]
+                    placed = self._place_card_on_node(card, target_node_id, "落石")
+                    if placed:
+                        rockfall_count += 1
+                        print(f"  ✅ 放置到落石支路节点 {target_node_id}")
+                else:
+                    print("  ❌ 落石支路已满，丢弃")
+
+            elif "帐篷" in card.name or "帐篷" in card.description:
+                # 帐篷牌放在帐篷支路
+                if tent_count < len(tent_nodes):
+                    target_node_id = tent_nodes[tent_count]
+                    placed = self._place_card_on_node(card, target_node_id, "帐篷")
+                    if placed:
+                        tent_count += 1
+                        print(f"  ✅ 放置到帐篷支路节点 {target_node_id}")
+                else:
+                    print("  ❌ 帐篷支路已满，丢弃")
+
+            else:
+                print(f"  ⚠️ 未知牌类型，丢弃: {card.name}")
+
+            if not placed:
+                print(f"  🗑️ 丢弃牌: {card.name}")
+
+        print(f"\n✅ 放置完成统计:")
+        print(f"  水灾支路: {flood_count}/{len(flood_nodes)} 张牌")
+        print(f"  旱灾支路: {drought_count}/{len(drought_nodes)} 张牌")
+        print(f"  落石支路: {rockfall_count}/{len(rockfall_nodes)} 张牌")
+        print(f"  帐篷支路: {tent_count}/{len(tent_nodes)} 张牌")
+
+    def _place_card_on_node(self, card, node_id, event_type):
+        """
+        将牌放置到指定节点上
+        """
+        # 检查节点是否存在
+        if node_id not in self.board_state.nodes:
+            print(f"  ❌ 节点 {node_id} 不存在")
+            return False
+
+        node = self.board_state.nodes[node_id]
+
+        # 设置节点的事件类型和牌信息
+        node.name = card.name
+        node.event_type = event_type
+        node.event_card = {
+            "card_id": card.card_id,
+            "name": card.name,
+            "special_ability": card.special_ability,
+            "description": card.description
+        }
+
+        # 添加事件相关动作
+        if event_type in ["水灾", "旱灾", "落石"]:
+            node.add_action("avoid_hazard")
+            node.add_action("pay_toll")
+        elif event_type == "帐篷":
+            node.add_action("rest")
+            node.add_action("trade")
+
+        return True
 
     def get_available_building_actions(self, location_id: int, player_id: str) -> List[Dict[str, Any]]:
         """获取在指定位置可用的建筑物动作"""
