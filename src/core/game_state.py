@@ -372,51 +372,89 @@ class GameState:
         self._place_buildings()
 
     def _place_buildings(self):
-        """放置建筑物"""
-        # 使用预定义的建筑放置点
-        """放置建筑物 - 修改版本：在5号节点随机放置建筑"""
-        import random
+        """
+                在地图初始化时放置公有建筑物
+                在指定节点1/5/9/10/12/15/17放置建筑物
+                """
+        print("=== 放置公有建筑物 ===")
 
-        # 定义可选的建筑类型
-        building_options = [
-            BuildingType.BUILDING_TYPE_1,
-            BuildingType.BUILDING_TYPE_2,
-            BuildingType.BUILDING_TYPE_3
-        ]
+        # 从公有建筑物牌堆抽取7张牌
+        building_cards = self.deck_manager.draw_cards(CardType.PUBLIC_BUILDING, 7)
 
-        # # 在5号节点随机选择一个建筑类型
-        # random_building = random.choice(building_options)
+        if len(building_cards) < 7:
+            print(f"⚠️ 公有建筑物牌不足7张，只有{len(building_cards)}张")
 
-        # 随机打乱建筑类型顺序
-        random.shuffle(building_options)
-
-        # 为5、10、15号节点分配不同的建筑
-        special_building_placement = {
-            5: building_options[0],
-            10: building_options[1],
-            15: building_options[2]
+        # 将卡牌的特殊能力映射到建筑物类型
+        ability_to_building = {
+            "station": BuildingType.STATION,
+            "ranch": BuildingType.RANCH,
+            "hazard": BuildingType.HAZARD,
+            "telegraph": BuildingType.TELEGRAPH,
+            "church": BuildingType.CHURCH,
+            "bank": BuildingType.BANK,
+            "hotel": BuildingType.HOTEL
         }
 
-        building_placement = {
-            1: BuildingType.STATION,
-            3: BuildingType.RANCH,
-            6: BuildingType.HAZARD,
-            8: BuildingType.TELEGRAPH,
-            11: BuildingType.CHURCH,
-            13: BuildingType.STATION,
-            16: BuildingType.RANCH,
-            18: BuildingType.HAZARD,
-            21: BuildingType.TELEGRAPH,
-            24: BuildingType.CHURCH,
-            26: BuildingType.STATION
-        }
+        # 在指定节点放置建筑物
+        public_building_nodes = [1, 5, 9, 10, 12, 15, 17]
 
-        # 将特殊节点的建筑分配合并到主建筑放置字典中
-        building_placement.update(special_building_placement)
+        for i, node_id in enumerate(public_building_nodes):
+            if i < len(building_cards):
+                card = building_cards[i]
+                building_type = ability_to_building.get(card.special_ability)
 
-        for node_id, building_type in building_placement.items():
-            self.board_state.place_building(node_id, building_type)
-            print(f"在节点{node_id}放置了建筑: {building_type.value}")  # 调试信息
+                if building_type:
+                    self._place_public_building(node_id, building_type, card)
+                else:
+                    print(f"❌ 未知的建筑类型: {card.special_ability}")
+            else:
+                print(f"⚠️ 节点{node_id}：没有足够的建筑物牌")
+
+        print("✅ 公有建筑物放置完成")
+
+    def _place_public_building(self, node_id: int, building_type: BuildingType, card):
+        """在指定节点放置公有建筑物"""
+        if node_id not in self.board_state.nodes:
+            print(f"❌ 节点{node_id}不存在")
+            return
+
+        node = self.board_state.nodes[node_id]
+
+        # 检查节点是否可以建造
+        if not node.is_buildable():
+            print(f"❌ 节点{node_id}不可建造")
+            return
+
+        # 放置建筑物
+        node.building_type = building_type
+
+        # 根据建筑类型添加特定动作
+        if building_type == BuildingType.STATION:
+            node.add_action("train_move")
+            node.add_action("build")
+        elif building_type == BuildingType.RANCH:
+            node.add_action("buy_cattle")
+            node.add_action("hire_worker")
+        elif building_type == BuildingType.HAZARD:
+            node.add_action("avoid_hazard")
+            node.add_action("gain_certificate")
+        elif building_type == BuildingType.TELEGRAPH:
+            node.add_action("send_message")
+            node.add_action("remote_trade")
+        elif building_type == BuildingType.CHURCH:
+            node.add_action("pray")
+            node.add_action("blessing")
+        elif building_type == BuildingType.BANK:
+            node.add_action("loan")
+            node.add_action("interest")
+        elif building_type == BuildingType.HOTEL:
+            node.add_action("rest")
+            node.add_action("recover")
+
+        # 添加通用建筑动作
+        node.add_action("use_public_building")
+
+        print(f"✅ 节点{node_id}：放置{card.name}")
 
     def get_available_building_actions(self, location_id: int, player_id: str) -> List[Dict[str, Any]]:
         """获取在指定位置可用的建筑物动作"""

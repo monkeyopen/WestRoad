@@ -3,6 +3,8 @@ from typing import Dict, List, Optional, Any, ClassVar
 from dataclasses import dataclass, field
 from enum import Enum
 
+from src.core.models import ActionType
+
 
 class LocationType(Enum):
     """地点类型枚举 - 定义地图节点的功能类别"""

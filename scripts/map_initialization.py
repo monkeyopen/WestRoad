@@ -16,9 +16,8 @@ try:
     from src.core.models.board import BuildingConfig, BuildingType
     # 导入配置实例以确保它们被创建
     from src.core.models.board import (
-        STATION_CONFIG, RANCH_CONFIG, HAZARD_CONFIG,
-        TELEGRAPH_CONFIG, CHURCH_CONFIG,
-        BUILDING_TYPE_1_CONFIG, BUILDING_TYPE_2_CONFIG, BUILDING_TYPE_3_CONFIG
+        STATION_CONFIG, RANCH_CONFIG,
+        BUILDING_TYPE_1, BUILDING_TYPE_2, BUILDING_TYPE_3
     )
     print("✅ BuildingConfig 和相关配置导入成功")
 except ImportError as e:

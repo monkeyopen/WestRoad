@@ -41,6 +41,10 @@ class CardType(Enum):
     ACTION_C = "action_c"  # 动作C牌
     MISSION = "mission"  # 任务牌
     TEST= "test"  # 测试牌
+    PUBLIC_BUILDING = "public_building"  # 公有建筑物牌
+
+
+
 
 
 
