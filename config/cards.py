@@ -205,7 +205,7 @@ PUBLIC_BUILDING_DECK_CONFIG = {
             "description": "提供移动和建造能力",
             "base_value": 0,
             "cost": 0,
-            "special_ability": "station",
+            "special_ability": "提供移动和建造能力",
             "count": 1
         },
         {
@@ -213,7 +213,7 @@ PUBLIC_BUILDING_DECK_CONFIG = {
             "description": "提供购买牛群能力",
             "base_value": 0,
             "cost": 0,
-            "special_ability": "ranch",
+            "special_ability": "提供购买牛群能力",
             "count": 1
         },
         {
@@ -221,7 +221,7 @@ PUBLIC_BUILDING_DECK_CONFIG = {
             "description": "特殊效果建筑",
             "base_value": 0,
             "cost": 0,
-            "special_ability": "hazard",
+            "special_ability": "特殊效果建筑",
             "count": 1
         },
         {
@@ -253,7 +253,7 @@ PUBLIC_BUILDING_DECK_CONFIG = {
             "description": "休息和恢复",
             "base_value": 0,
             "cost": 0,
-            "special_ability": "hotel",
+            "special_ability": "休息和恢复",
             "count": 1
         }
     ]

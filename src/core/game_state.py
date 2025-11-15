@@ -56,6 +56,9 @@ class GameState:
     action_history: List[Dict[str, Any]] = field(default_factory=list)
 
     def __init__(self, session_id: str):
+        if not hasattr(self, 'session_id') or not self.session_id:
+            self.session_id = str(uuid4())
+        self.board_state = BoardState()
         self.labor_market = LaborMarket()  # 初始化人才市场
         self.deck_manager = DeckManager()  # 初始化牌堆管理器
         self._initialize_decks()  # 初始化所有牌堆
@@ -100,10 +103,10 @@ class GameState:
             "current_round": self.current_round,
             "current_player_index": self.current_player_index,
             "turn_start_time": self.turn_start_time.isoformat() if self.turn_start_time else None,
-            "players": [self._player_to_dict(p) for p in self.players],
-            "player_order": self.player_order,
+            # "players": [self._player_to_dict(p) for p in self.players],
+            # "player_order": self.player_order,
             "board_state": self._board_to_dict(),
-            "cattle_market": self.cattle_market,
+            # "cattle_market": self.cattle_market,
             "available_workers": self.available_workers,
             "max_players": self.max_players,
             "game_config": self.game_config,
@@ -111,7 +114,7 @@ class GameState:
             "last_updated": self.last_updated.isoformat(),
             "labor_market": self.labor_market.to_dict(),
             "deck_manager": self.deck_manager.to_dict(),
-            "action_history": self.action_history
+            # "action_history": self.action_history
         }
 
     @classmethod
@@ -391,8 +394,8 @@ class GameState:
             "hazard": BuildingType.HAZARD,
             "telegraph": BuildingType.TELEGRAPH,
             "church": BuildingType.CHURCH,
-            "bank": BuildingType.BANK,
-            "hotel": BuildingType.HOTEL
+            "bank": BuildingType.BUILDING_TYPE_1,
+            "hotel": BuildingType.BUILDING_TYPE_1
         }
 
         # 在指定节点放置建筑物
@@ -444,12 +447,7 @@ class GameState:
         elif building_type == BuildingType.CHURCH:
             node.add_action("pray")
             node.add_action("blessing")
-        elif building_type == BuildingType.BANK:
-            node.add_action("loan")
-            node.add_action("interest")
-        elif building_type == BuildingType.HOTEL:
-            node.add_action("rest")
-            node.add_action("recover")
+
 
         # 添加通用建筑动作
         node.add_action("use_public_building")

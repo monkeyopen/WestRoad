@@ -11,7 +11,7 @@ class LocationType(Enum):
     START = "start"  # 起点
     KANSAS_CITY = "kansas_city"  # 堪萨斯城（卖牛地点）
     BRANCH = "branch"
-    NORMAL = "normal"  # 添加这一行
+    NORMAL = "normal"
 
 
 class BuildingType(Enum):
@@ -215,7 +215,7 @@ class MapNode:
 
     def is_buildable(self) -> bool:
         """检查节点是否可以建造建筑"""
-        return (self.location_type == LocationType.BUILDING and
+        return (self.location_type == LocationType.NORMAL and
                 not self.has_building())
 
     @classmethod
