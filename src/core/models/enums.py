@@ -45,6 +45,34 @@ class CardType(Enum):
     STATION_FLAG = "station_flag"  # 站长标记
 
 
+class AuxiliaryAbility(Enum):
+    GOLD_1 = "gold_1"      # 1金币
+    GOLD_2 = "gold_2"      # 2金币
+    DRAW_1 = "draw_1"  # 抽1张牌
+    DRAW_2 = "draw_2"  # 抽2张牌
+    REVERSE_1 = "reverse_1"  # 倒车1次
+    REVERSE_2 = "reverse_2"  # 倒车2次
+    FORWARD_1 = "forward_1"  # 开车1次
+    FORWARD_2 = "forward_2"  # 开车2次
+    DROP_1 = "drop_1"  # 掉1张牌
+    DROP_2 = "drop_2"  # 掉2张牌
+    SPEED_1 = "speed_1"  # 速度+1
+    SPEED_2 = "speed_2"  # 速度+2
+    # 手牌容量+1
+    CARD_CAPACITY_1 = "card_capacity_1"
+    # 手牌容量+2
+    CARD_CAPACITY_2 = "card_capacity_2"
+    # 荣誉上限+1
+    HONOR_LIMIT_1 = "honor_limit_1"
+    # 荣誉上限+2
+    HONOR_LIMIT_2 = "honor_limit_2"
+
+
+
+
+
+
+
 
 
 
