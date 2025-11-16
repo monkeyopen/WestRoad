@@ -42,6 +42,7 @@ class CardType(Enum):
     MISSION = "mission"  # 任务牌
     TEST= "test"  # 测试牌
     PUBLIC_BUILDING = "public_building"  # 公有建筑物牌
+    STATION_FLAG = "station_flag"  # 站长标记
 
 
 

@@ -25,13 +25,13 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/check_db.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/deck_detailed.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/deck_system.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/future_area.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/init_db.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/map_initialization.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_build_action.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_cattle_actions.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_full_game.py
-https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_map_initialization.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_serialization.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/__init__.py
@@ -60,6 +60,7 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/card.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/deck_manager.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/enums.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/future_area.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/models/player.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/src/core/rules

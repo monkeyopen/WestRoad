@@ -428,6 +428,83 @@ class GameState:
 
         self.place_action_a_cards()
 
+        # 创建铁路路径 (200->201->202->...->239)
+        for i in range(200, 240):
+            self.board_state.connect_nodes(i, i + 1)
+
+        # 设置车站
+        self.board_state.connect_nodes(4, 241)
+        self.board_state.connect_nodes(241, 5)
+
+        self.board_state.connect_nodes(7, 242)
+        self.board_state.connect_nodes(242, 8)
+
+        self.board_state.connect_nodes(10, 243)
+        self.board_state.connect_nodes(243, 11)
+
+        self.board_state.connect_nodes(13, 244)
+        self.board_state.connect_nodes(244, 14)
+
+        self.board_state.connect_nodes(16, 245)
+        self.board_state.connect_nodes(245, 17)
+
+        self.board_state.connect_nodes(21, 246)
+        self.board_state.connect_nodes(246, 22)
+
+        self.board_state.connect_nodes(25, 247)
+        self.board_state.connect_nodes(247, 26)
+
+        self.board_state.connect_nodes(29, 248)
+        self.board_state.connect_nodes(248, 30)
+
+        self.board_state.connect_nodes(33, 249)
+        self.board_state.connect_nodes(249, 34)
+
+
+        # 放置站长标记
+        self._place_stations()
+
+    def _place_stations(self):
+        """
+                在铁路初始化时放置站长标记
+                在指定节点241/242/243/244/245放置站长标记
+                """
+        print("=== 放置站长标记 ===")
+
+        # 从站长标记牌堆抽取5张牌
+        building_cards = self.deck_manager.draw_cards(CardType.PUBLIC_BUILDING, 5)
+
+        if len(building_cards) < 7:
+            print(f"⚠️ 公有建筑物牌不足7张，只有{len(building_cards)}张")
+
+        # 将卡牌的特殊能力映射到建筑物类型
+        ability_to_building = {
+            "station": BuildingType.STATION,
+            "ranch": BuildingType.RANCH,
+            "hazard": BuildingType.HAZARD,
+            "telegraph": BuildingType.TELEGRAPH,
+            "church": BuildingType.CHURCH,
+            "bank": BuildingType.BUILDING_TYPE_1,
+            "hotel": BuildingType.BUILDING_TYPE_1
+        }
+
+        # 在指定节点放置建筑物
+        public_building_nodes = [1, 5, 9, 10, 12, 15, 17]
+
+        for i, node_id in enumerate(public_building_nodes):
+            if i < len(building_cards):
+                card = building_cards[i]
+                building_type = ability_to_building.get(card.special_ability)
+
+                if building_type:
+                    self._place_public_building(node_id, building_type, card)
+                else:
+                    print(f"❌ 未知的建筑类型: {card.special_ability}")
+            else:
+                print(f"⚠️ 节点{node_id}：没有足够的建筑物牌")
+
+        print("✅ 公有建筑物放置完成")
+
     def _place_buildings(self):
         """
                 在地图初始化时放置公有建筑物

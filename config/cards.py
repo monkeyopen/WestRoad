@@ -259,6 +259,70 @@ PUBLIC_BUILDING_DECK_CONFIG = {
     ]
 }
 
+# 站长标记配置 (7张)
+STATION_FLAG_DECK_CONFIG = {
+    "card_type": "station_flag",
+    "total_count": 7,
+    "card_prototypes": [
+        {
+            "name": "车站",
+            "description": "提供移动和建造能力",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "提供移动和建造能力",
+            "count": 1
+        },
+        {
+            "name": "牧场",
+            "description": "提供购买牛群能力",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "提供购买牛群能力",
+            "count": 1
+        },
+        {
+            "name": "危险建筑",
+            "description": "特殊效果建筑",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "特殊效果建筑",
+            "count": 1
+        },
+        {
+            "name": "电报站",
+            "description": "远程通信和交易",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "telegraph",
+            "count": 1
+        },
+        {
+            "name": "教堂",
+            "description": "提供祝福和特殊能力",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "church",
+            "count": 1
+        },
+        {
+            "name": "银行",
+            "description": "金融交易和贷款",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "bank",
+            "count": 1
+        },
+        {
+            "name": "酒店",
+            "description": "休息和恢复",
+            "base_value": 0,
+            "cost": 0,
+            "special_ability": "休息和恢复",
+            "count": 1
+        }
+    ]
+}
+
 # 所有牌堆配置
 DECK_CONFIGS = {
     "cattle": CATTLE_DECK_CONFIG,
@@ -267,7 +331,8 @@ DECK_CONFIGS = {
     "action_c": ACTION_C_DECK_CONFIG,
     "mission": MISSION_DECK_CONFIG,
     "test": TEST_DECK_CONFIG,
-    "public_building": PUBLIC_BUILDING_DECK_CONFIG
+    "public_building": PUBLIC_BUILDING_DECK_CONFIG,
+    "station_flag": STATION_FLAG_DECK_CONFIG
 }
 
 # 地图节点配置 - 需要放置公有建筑物的节点

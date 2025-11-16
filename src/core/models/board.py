@@ -13,6 +13,9 @@ class LocationType(Enum):
     BRANCH = "branch"
     NORMAL = "normal"
     EVENT = "event"
+    RAILWAY = "railway"
+    STATION = "station"
+    CITY = "city"
 
 
 class BuildingType(Enum):
@@ -268,6 +271,36 @@ class BoardState:
             )
             if i in [51, 52, 53, 54, 61, 62, 63, 64, 81, 82, 83, 84, 101, 102, 103, 104, 105, 106, 107, 108, 109]:
                 self.nodes[i].location_type = LocationType.EVENT
+
+        # 创建铁路节点 (200-240)
+        for i in range(200, 238):
+            self.nodes[i] = MapNode(
+                node_id=i,
+                name=f"节点{i}",
+                location_type=LocationType.RAILWAY,
+                x=50 + i * 30,  # 简单水平布局
+                y=300
+            )
+        for i in range(239, 250):
+            self.nodes[i] = MapNode(
+                node_id=i,
+                name=f"节点{i}",
+                location_type=LocationType.STATION,
+                x=50 + i * 30,  # 简单水平布局
+                y=300
+            )
+
+
+        # 创建城市节点 (300-310)
+        for i in range(300, 310):
+            self.nodes[i] = MapNode(
+                node_id=i,
+                name=f"节点{i}",
+                location_type=LocationType.CITY,
+                x=50 + i * 30,  # 简单水平布局
+                y=300
+            )
+
 
         # # 创建分支节点 (51-56, 61-65, 71-72, 81-86, 91-92, 101-108)
         # branch_nodes = list(range(51, 57)) + list(range(61, 66)) + [71, 72] + \
