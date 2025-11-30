@@ -6,6 +6,7 @@ import random
 from .enums import WorkerType
 from .deck_manager import DeckManager
 from .enums import CardType
+from config.labor_market import ROW_PRICES
 
 
 @dataclass
@@ -14,10 +15,12 @@ class LaborMarket:
 
     # 市场配置
     rows: int = 12
-    columns: int = 4
+    columns: int = 1
+    player_count: int = 4
 
     # 市场价格配置(每行的价格)
-    row_prices: List[int] = field(default_factory=lambda: [i + 1 for i in range(15)])
+    # row_prices: List[int] = field(default_factory=lambda: [i + 1 for i in range(15)])
+    row_prices: List[int] = field(default_factory=lambda: ROW_PRICES.copy())
 
     # 工人矩阵 (12行×4列)
     workers_matrix: List[List[Optional[WorkerType]]] = field(default_factory=list)
@@ -27,7 +30,7 @@ class LaborMarket:
 
     def __post_init__(self):
         """初始化后自动创建空矩阵"""
-        # 初始化空矩阵
+        self.columns = self.player_count
         self.workers_matrix = [[None for _ in range(self.columns)] for _ in range(self.rows)]
         print("✅ 人才市场空矩阵初始化完成")
 
@@ -35,10 +38,10 @@ class LaborMarket:
         """
         从action_b牌堆中抽取工人来初始化人才市场的前7个格子
         """
-        print("=== 从action_b牌堆初始化人才市场前7个格子 ===")
+        print("=== 从action_b牌堆初始化人才市场前两行 ===")
 
         # 从action_b牌堆抽取7张牌
-        action_b_cards = deck_manager.draw_cards(CardType.ACTION_B, 7)
+        action_b_cards = deck_manager.draw_cards(CardType.ACTION_B, self.player_count * 2 - 1)
 
         if len(action_b_cards) < 7:
             print(f"⚠️ action_b牌堆不足7张牌，只有{len(action_b_cards)}张")

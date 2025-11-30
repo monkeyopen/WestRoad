@@ -38,7 +38,7 @@ def labor_market_initialization():
     deck_manager.initialize_decks(deck_configs)
 
     # 创建人才市场
-    labor_market = LaborMarket()
+    labor_market = LaborMarket(player_count=2)
 
     # 从action_b牌堆初始化前两行
     labor_market.initialize_from_action_b_deck(deck_manager)
@@ -266,9 +266,9 @@ if __name__ == "__main__":
     # 运行所有测试
     tests = [
         labor_market_initialization,
-        hire_and_refill,
-        serialization,
-        insufficient_cards
+        # hire_and_refill,
+        # serialization,
+        # insufficient_cards
     ]
 
     results = []

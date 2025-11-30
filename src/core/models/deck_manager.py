@@ -197,5 +197,41 @@ class DeckManager:
 
         return manager
 
+    def print_deck_status(self, card_type):
+        """打印指定牌堆的详细状态"""
+        deck = self.get_deck(card_type)
+        if not deck:
+            print(f"❌ 未找到牌堆: {card_type.value}")
+            return
+
+        status = self.get_deck_status()
+        deck_status = status.get(card_type, {})
+
+        print(f"\n=== {card_type.value.upper()} 牌堆状态 ===")
+        print(f"剩余牌数: {deck_status.get('remaining', 0)}")
+        print(f"弃牌数: {deck_status.get('discarded', 0)}")
+        print(f"总牌数: {deck_status.get('total', 0)}")
+
+        # 打印剩余牌的前10张（如果有很多牌）
+        if deck.cards:
+            print(f"\n剩余牌示例 (前{min(10, len(deck.cards))}张):")
+            for i, card in enumerate(deck.cards[:10]):
+                print(f"  {i + 1}. {card.name} (价值: {card.base_value}, 成本: {card.cost})")
+                if card.special_ability:
+                    print(f"     特殊能力: {card.special_ability}")
+                if card.description:
+                    print(f"     描述: {card.description}")
+        else:
+            print("剩余牌: 无")
+
+        # 打印弃牌堆的前5张（如果有）
+        if deck.discarded:
+            print(f"\n弃牌堆示例 (前{min(5, len(deck.discarded))}张):")
+            for i, card in enumerate(deck.discarded[:5]):
+                print(f"  {i + 1}. {card.name} (价值: {card.base_value})")
+        else:
+            print("弃牌堆: 空")
+
+
 
     

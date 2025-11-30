@@ -59,18 +59,30 @@ class GameState:
     # 未来区
     future_area: FutureArea = field(default_factory=FutureArea)
 
-    def __init__(self, session_id: str):
+    def __init__(self, session_id: str, player_count: int):
+        print("初始化游戏状态")
         if not hasattr(self, 'session_id') or not self.session_id:
             self.session_id = str(uuid4())
 
         self.board_state = BoardState()
         self.deck_manager = DeckManager()  # 初始化牌堆管理器
         self._initialize_decks()  # 初始化所有牌堆
-        self.labor_market = LaborMarket()  # 初始化人才市场
+        # 查看action_b_deck
+        # self.deck_manager.print_deck_status(CardType.ACTION_B)
+        self.labor_market = LaborMarket(player_count=player_count)  # 初始化空人才市场
+        self.labor_market.initialize_from_action_b_deck(self.deck_manager)  # 从动作B牌堆初始化空人才市场
+        # 查看action_b_deck
+        # self.deck_manager.print_deck_status(CardType.ACTION_B)
 
         # # 初始化未来区
         self.future_area = FutureArea()
+        # 初始化未来区
+        self.future_area.initialize(self.deck_manager)
 
+        # 显示未来区状态
+        self.future_area.display()
+        # 查看action_b_deck
+        # self.deck_manager.print_deck_status(CardType.ACTION_B)
 
 
     def _initialize_decks(self):

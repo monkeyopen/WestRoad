@@ -89,22 +89,22 @@ ACTION_A_DECK_CONFIG = {
 # 动作B牌配置 (60张)
 ACTION_B_DECK_CONFIG = {
     "card_type": "action_b",
-    "total_count": 60,
+    "total_count": 45,
     "card_prototypes": [
         {
             "name": "牛仔",
             "description": "擅长买牛",
-            "count": 20
+            "count": 15
         },
         {
             "name": "建筑工人",
             "description": "擅长建筑",
-            "count": 20
+            "count": 15
         },
         {
             "name": "司机",
             "description": "擅长驾驶",
-            "count": 20
+            "count": 15
         }
     ]
 }
@@ -112,25 +112,70 @@ ACTION_B_DECK_CONFIG = {
 # 动作C牌配置 (60张)
 ACTION_C_DECK_CONFIG = {
     "card_type": "action_c",
-    "total_count": 60,
+    "total_count": 55,
     "card_prototypes": [
         {
-            "name": "加速卡",
-            "description": "加速行动",
-            "special_ability": "speed_up",
-            "count": 25
+            "name": "牛仔",
+            "description": "擅长买牛",
+            "count": 5
         },
         {
-            "name": "保护卡",
-            "description": "防止负面效果",
-            "special_ability": "protection",
-            "count": 25
+            "name": "建筑工人",
+            "description": "擅长建筑",
+            "count": 5
         },
         {
-            "name": "复制卡",
-            "description": "复制其他卡牌效果",
-            "special_ability": "copy_ability",
-            "count": 10
+            "name": "司机",
+            "description": "擅长驾驶",
+            "count": 5
+        },
+{
+            "name": "水灾",
+            "description": "水灾牌",
+            "special_ability": "-1",
+            "count": 5
+        },
+        {
+            "name": "水灾",
+            "description": "水灾牌",
+            "special_ability": "-2",
+            "count": 5
+        },
+        {
+            "name": "旱灾",
+            "description": "旱灾牌",
+            "special_ability": "-1",
+            "count": 5
+        },
+        {
+            "name": "旱灾",
+            "description": "旱灾牌",
+            "special_ability": "-2",
+            "count": 5
+        },
+        {
+            "name": "落石",
+            "description": "落石牌",
+            "special_ability": "-1",
+            "count": 5
+        },
+        {
+            "name": "落石",
+            "description": "落石牌",
+            "special_ability": "-2",
+            "count": 5
+        },
+        {
+            "name": "蓝帐篷",
+            "description": "蓝帐篷",
+            "special_ability": "-1",
+            "count": 5
+        },
+        {
+            "name": "绿帐篷",
+            "description": "绿帐篷",
+            "special_ability": "-2",
+            "count": 5
         }
     ]
 }
