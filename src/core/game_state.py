@@ -99,6 +99,22 @@ class GameState:
 
         self.deck_manager.initialize_decks(deck_configs)
 
+    def determine_player_order(self) -> List[int]:
+        """确定玩家行动顺序"""
+        print("=== 确定玩家行动顺序 ===")
+
+        # 获取玩家数量
+        player_count = self.max_players
+
+        # 生成随机顺序的玩家索引数组
+        player_indices = list(range(player_count))
+        random.shuffle(player_indices)
+
+        self.player_order = player_indices
+
+        print(f"玩家行动顺序: {self.player_order}")
+        return self.player_order
+
     def take_card_from_future_area(self, row: int, col: int, player_id: str) -> Dict[str, Any]:
         """
         从未来区取走一张牌

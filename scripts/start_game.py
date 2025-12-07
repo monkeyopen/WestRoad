@@ -73,6 +73,8 @@ class GameStarter:
         self.game_state.session_name = f"大西部之路游戏_{session_id}"
         self.game_state.max_players = player_count
         self.game_state.current_phase = GamePhase.SETUP
+        # 生成玩家的行动顺序
+        self.game_state.determine_player_order()
         logger.info(f"创建游戏会话: {session_id}, 人数: {player_count}")
 
     def _setup_players(self, player_count):
