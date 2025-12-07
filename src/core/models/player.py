@@ -75,8 +75,8 @@ class PlayerState:
     # 资源状态
     resources: ResourceSet = field(default_factory=ResourceSet)
 
-    # 卡牌管理
-    card_manager: CardManager = field(default_factory=CardManager)
+    # # 卡牌管理
+    # card_manager: CardManager = field(default_factory=CardManager)
 
     # 游戏进度
     victory_points: int = 0

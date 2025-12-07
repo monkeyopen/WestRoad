@@ -6,6 +6,7 @@ Curl -s "https://api.github.com/repos/monkeyopen/WestRoad/git/trees/master?recur
 设计文档
 https://raw.githubusercontent.com/monkeyopen/WestRoad/blob/master/doc/《大西部之路》游戏后台设计文档.pdf
 相关代码如下
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/.gitignore
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/README.md
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/command.txt
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/config
@@ -29,6 +30,7 @@ https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/labor_market.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/map_initialization.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/player_state.py
+https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/start_game.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_build_action.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_cattle_actions.py
 https://raw.githubusercontent.com/monkeyopen/WestRoad/refs/heads/master/scripts/test_full_game.py

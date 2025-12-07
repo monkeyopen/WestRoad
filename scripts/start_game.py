@@ -130,7 +130,7 @@ class GameStarter:
 
         return PlayerState(
             player_id=str(uuid4()),
-            user_id=f"user_{player_index + 1}",
+            user_id=f"player_{player_index + 1}",
             player_color=player_info["color"],
             display_name=player_info["name"],
             position=0,  # 起始位置
