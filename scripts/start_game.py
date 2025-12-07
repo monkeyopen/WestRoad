@@ -55,8 +55,9 @@ class GameStarter:
         """获取玩家数量"""
         while True:
             try:
-                count = input("请输入游戏人数 (2-4人): ").strip()
-                count = int(count)
+                # count = input("请输入游戏人数 (2-4人): ").strip()
+                # count = int(count)
+                count = 2
                 if 2 <= count <= 4:
                     return count
                 else:
@@ -94,7 +95,8 @@ class GameStarter:
 
         # 获取玩家名称
         while True:
-            name = input(f"请输入玩家{player_num}的名称: ").strip()
+            # name = input(f"请输入玩家{player_num}的名称: ").strip()
+            name = f"player_{player_num}"
             if name:
                 break
             print("❌ 名称不能为空")

@@ -40,9 +40,13 @@ class CardType(Enum):
     ACTION_B = "action_b"  # 动作B牌
     ACTION_C = "action_c"  # 动作C牌
     MISSION = "mission"  # 任务牌
-    TEST= "test"  # 测试牌
+    TEST = "test"  # 测试牌
     PUBLIC_BUILDING = "public_building"  # 公有建筑物牌
     STATION_FLAG = "station_flag"  # 站长标记
+    player_1 = "player_1"  # 玩家1
+    player_2 = "player_2"  # 玩家2
+    player_3 = "player_3"  # 玩家3
+    player_4 = "player_4"  # 玩家4
 
 
 class AuxiliaryAbility(Enum):

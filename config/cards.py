@@ -368,6 +368,43 @@ STATION_FLAG_DECK_CONFIG = {
     ]
 }
 
+
+# 玩家牌堆配置 (14张)
+PLAYER_DECK_CONFIG = {
+    "card_type": "cattle",
+    "total_count": 14,
+    "card_prototypes": [
+        {
+            "name": "1号牛牌",
+            "description": "1号牛牌",
+            "base_value": 1,
+            "cost": 0,
+            "count": 5
+        },
+        {
+            "name": "2号牛牌_蓝色",
+            "description": "2号牛牌_蓝色",
+            "base_value": 2,
+            "cost": 0,
+            "count": 3
+        },
+        {
+            "name": "2号牛牌_红色",
+            "description": "2号牛牌_红色",
+            "base_value": 2,
+            "cost": 0,
+            "count": 3
+        },
+        {
+            "name": "2号牛牌_黄色",
+            "description": "2号牛牌_黄色",
+            "base_value": 2,
+            "cost": 0,
+            "count": 3
+        }
+    ]
+}
+
 # 所有牌堆配置
 DECK_CONFIGS = {
     "cattle": CATTLE_DECK_CONFIG,
@@ -377,7 +414,11 @@ DECK_CONFIGS = {
     "mission": MISSION_DECK_CONFIG,
     "test": TEST_DECK_CONFIG,
     "public_building": PUBLIC_BUILDING_DECK_CONFIG,
-    "station_flag": STATION_FLAG_DECK_CONFIG
+    "station_flag": STATION_FLAG_DECK_CONFIG,
+    "player_1": PLAYER_DECK_CONFIG,
+    "player_2": PLAYER_DECK_CONFIG,
+    "player_3": PLAYER_DECK_CONFIG,
+    "player_4": PLAYER_DECK_CONFIG,
 }
 
 # 地图节点配置 - 需要放置公有建筑物的节点

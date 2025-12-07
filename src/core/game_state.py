@@ -484,10 +484,10 @@ class GameState:
         print("=== 放置站长标记 ===")
 
         # 从站长标记牌堆抽取5张牌
-        building_cards = self.deck_manager.draw_cards(CardType.PUBLIC_BUILDING, 5)
+        building_cards = self.deck_manager.draw_cards(CardType.STATION_FLAG, 5)
 
-        if len(building_cards) < 7:
-            print(f"⚠️ 公有建筑物牌不足7张，只有{len(building_cards)}张")
+        if len(building_cards) < 5:
+            print(f"⚠️ 站长标记牌不足5张，只有{len(building_cards)}张")
 
         # 将卡牌的特殊能力映射到建筑物类型
         ability_to_building = {
